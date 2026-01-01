@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Слайдер</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+
+    <!-- Подключение стилей и скрипта Glide -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Glide.js/3.0.2/css/glide.core.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Glide.js/3.0.2/css/glide.theme.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Glide.js/3.0.2/glide.js"></script>
+    <style>
+        /* Убираем все отступы у страницы */
+        body, html {
+          margin: 0;
+          padding: 0;
+          overflow-x: hidden; /* Защита от горизонтальной прокрутки */
+        }
+        
+        /* Сам блок Glide должен растягиваться на 100% ширины обертки */
+        .glide {
+          width: 100% !important;
+        }
+
+        /* На всякий случай сбрасываем стили списка, чтобы Glide считал всё ровно */
+        .glide__slides {
+          display: flex !important;
+          margin: 0 !important;
+          padding: 0 !important;
+        }
+
+        /* Изображения внутри должны занимать всю ширину слайда */
+        .glide__slide img {
+            width: 85%;       /* Растягивает по ширине */
+            margin-left: auto;
+            margin-right: auto;
+            display: block;    /* Убирает нижний микро-отступ */
+            object-fit: contain; /* Заполняет пространство без искажений */
+        }
+        
+        /* Сбрасываем стандартные стили обертки трека */
+        .glide__track {
+            margin: 0 !important;
+            padding: 0 !important;
+            background: transparent !important; /* Убирает серый фон, если он есть */
+        }
+
+        /* Убираем любые отступы у слайда */
+        .glide__slide {
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+        
+        .glide__arrow {
+          width: 50px;
+          height: 50px;
+          border-radius: 50%;
+          background-color: #ff4d4d; /* Красный, под стиль стрелок */
+          color: white;
+          border: none;
+          
+          /* Центрирование иконки */
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          
+          cursor: pointer;
+          transition: all 0.3s ease;
+          padding: 0; /* Убираем лишнее, чтобы круг не стал овалом */
+        }
+
+        /* Размер самой иконки */
+        .glide__arrow i {
+          font-size: 20px;
+        }
+
+        .glide {
+            position: relative;
+            padding-top: 55px;
+        }
+
+        /* Общие стили для обоих блоков */
+        .dynamic-title-top, .dynamic-info-bottom {
+          position: absolute;
+          left: 10px;
+          right: 10px;
+          z-index: 10;
+          padding: 12px 15px;
+          
+          /* Белый, но очень прозрачный */
+          background-color: rgba(255, 255, 255, 0.4);
+          
+          /* Магия для Safari: сильное размытие + повышение насыщенности */
+          -webkit-backdrop-filter: blur(20px) saturate(180%);
+          backdrop-filter: blur(20px) saturate(180%);
+          
+          /* Убираем серый оттенок принудительным слоем */
+          transform: translateZ(0);
+          
+          font-family: 'Roboto', sans-serif;
+          color: #000;
+          text-align: center;
+          border-radius: 12px;
+          border: 1px solid rgba(255, 255, 255, 0.5);
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Ссылка внутри светлого блока комментария */
+        .dynamic-info-bottom a {
+          color: white;
+          text-decoration: underline;
+          font-weight: bold;
+          pointer-events: auto;
+          transition: color 0.2s;
+        }
+
+        .dynamic-info-bottom a:hover {
+          color: #000000;
+          text-decoration: none;
+        }
+
+        /* Верхний блок (заголовок) */
+        .dynamic-title-top {
+          top: 10px;
+          font-size: 18px;
+          font-weight: bold;
+          color: #d32f2f;
+        }
+
+        /* Нижний блок (комментарий) */
+        .dynamic-info-bottom {
+          bottom: 10px;
+          font-size: 16px;
+          pointer-events: none;
+          background-color: #ff4d4d; /* Красный, под стиль стрелок */
+          color: white;
+        }
+
+        /* Анимации из прошлого примера */
+        @keyframes slideDown {
+          from { opacity: 0; transform: translateY(-15px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideUp {
+          from { opacity: 0; transform: translateY(15px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Стандартное состояние стрелок */
+        .glide__arrow {
+          transition: opacity 0.3s ease, visibility 0.3s ease;
+          opacity: 1;
+          visibility: visible;
+        }
+
+        /* Кнопка "Дальше" в самом низу */
+        .dynamic-next-button {
+          position: absolute;
+          bottom: 20px; /* Самый низ */
+          left: 50%;
+          transform: translateX(-50%);
+          z-index: 15;
+          
+          padding: 10px 25px;
+          background-color: #ff4d4d; /* Красный, под стиль стрелок */
+          color: white;
+          border: none;
+          border-radius: 25px;
+          font-size: 14px;
+          font-weight: bold;
+          text-transform: uppercase;
+          cursor: pointer;
+          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+          transition: background 0.3s, transform 0.2s;
+          pointer-events: auto; /* Чтобы кнопка нажималась */
+          
+          white-space: nowrap;    /* Запрещает перенос строки */
+          overflow: hidden;       /* Скрывает текст, который не помещается */
+          text-overflow: ellipsis; /* Добавляет "..." в конце */
+        }
+
+        .dynamic-next-button:hover {
+          background-color: #cc0000;
+          transform: translateX(-50%) scale(1.05);
+        }
+
+        .dynamic-next-button:active {
+          transform: translateX(-50%) scale(0.95);
+        }
+
+        /* Поднимаем блок комментария чуть выше, чтобы он не перекрывал кнопку */
+        .dynamic-info-bottom {
+          bottom: 70px; /* Увеличили отступ снизу, чтобы кнопка влезла под него */
+        }
+
+        /* Общий класс для скрытия (используется и для стрелок, и для кнопки) */
+        .arrow-hidden {
+          opacity: 0 !important;
+          visibility: hidden !important;
+          pointer-events: none !important;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="glide_parent">
+        <div class="glide">
+            <div class="glide__track" data-glide-el="track">
+                <!-- Сюда скрипт вставит слайды -->
+                <ul class="glide__slides" id="glide-render-target"></ul>
+            </div>
+            
+            <div class="glide__arrows" data-glide-el="controls">
+                <button class="glide__arrow glide__arrow--left" data-glide-dir="<">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </button>
+                <button class="glide__arrow glide__arrow--right" data-glide-dir=">">
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+<script>
+    function initSlider() {
+      try {
+        // 1. Получаем параметр ?page= из URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const currentPageId = urlParams.get('page') || 'buy';
+
+        // 2. Читаем JSON прямо из HTML-тега
+        const jsonData = document.getElementById('slider-data').textContent;
+        const allDataArray = JSON.parse(jsonData);
+        const pageData = allDataArray.find(item => item.page === currentPageId);
+
+        if (!pageData || !pageData.slides) return;
+
+        const slideData = pageData.slides;
+        const renderTarget = document.getElementById('glide-render-target');
+
+        // 3. Динамическая генерация слайдов
+        renderTarget.innerHTML = slideData.map(slide => `
+          <li class="glide__slide">
+            <img src="${slide.image}" alt="${slide.title}">
+          </li>
+        `).join('');
+
+        // 4. Инициализация Glide (только ПОСЛЕ генерации HTML)
+        const glide = new Glide('.glide', {
+          type: 'slider',
+          perView: 1,
+          rewind: false,
+          gap: 0
+        });
+
+        // Создаем наложения
+        const titleOverlay = document.createElement('div');
+        titleOverlay.className = 'dynamic-title-top';
+        const infoOverlay = document.createElement('div');
+        infoOverlay.className = 'dynamic-info-bottom';
+        
+        const glideParent = document.querySelector('.glide_parent');
+        const glideContainer = document.querySelector('.glide');
+        glideParent.prepend(titleOverlay);
+        glideParent.appendChild(infoOverlay);
+
+        const leftArrow = document.querySelector('.glide__arrow--left');
+        const rightArrow = document.querySelector('.glide__arrow--right');
+
+        // Создаем кнопку "Дальше"
+        const nextBtn = document.createElement('button');
+        nextBtn.className = 'dynamic-next-button';
+        nextBtn.textContent = 'Дальше';
+        glideParent.appendChild(nextBtn);
+        
+        // Обработчик клика
+        nextBtn.addEventListener('click', () => {
+          glide.go('>'); // Команда Glide перейти к следующему слайду
+        });
+
+        // Создаем кнопку "Вернуться"
+        const finishBtn = document.createElement('button');
+        finishBtn.className = 'dynamic-next-button';
+        finishBtn.textContent = 'На главную страницу приложения >';
+        glideParent.appendChild(finishBtn);
+
+        // Обработчик клика
+        finishBtn.addEventListener('click', () => {
+            window.location.href = 'https://faberlic.com/index.php?option=com_user&view=login';
+        });
+
+        function updateUI() {
+          const data = slideData[glide.index];
+          const totalSlides = slideData.length;
+
+          if (data) {
+            titleOverlay.textContent = data.title;
+            infoOverlay.innerHTML = data.comment;
+          }
+
+          // Скрытие стрелок
+          leftArrow.classList.toggle('arrow-hidden', glide.index === 0);
+          rightArrow.classList.toggle('arrow-hidden', glide.index === totalSlides - 1);
+          
+          // Скрываем кнопку "Дальше" на последнем слайде
+          const isLastSlide = (glide.index === totalSlides - 1)
+          if (nextBtn) {
+            nextBtn.classList.toggle('arrow-hidden', isLastSlide);
+          }
+          if (finishBtn) {
+              finishBtn.classList.toggle('arrow-hidden', !isLastSlide);
+          }
+            
+          // Анимация текста
+          [titleOverlay, infoOverlay].forEach(el => {
+            el.style.animation = 'none';
+            el.offsetHeight;
+          });
+          titleOverlay.style.animation = 'slideDown 0.4s ease-out forwards';
+          infoOverlay.style.animation = 'slideUp 0.4s ease-out forwards';
+        }
+
+        glide.on(['run.after'], updateUI);
+        glide.mount();
+        updateUI();
+
+      } catch (error) {
+        console.error('Ошибка:', error);
+      }
+    }
+
+    // Запускаем сразу, так как fetch ждать не нужно
+    document.addEventListener('DOMContentLoaded', initSlider);
+
+</script>
+
+<script id="slider-data" type="application/json">
+[
+ {
+     "page": "buy",
+     "slides": [
+       { "image": "buy1.png", "title": "Сделать заказ - поиск товара",
+         "comment": "Нажмите на иконку с лупой для перехода к быстрому поиску товара."},
+       { "image": "buy2.png", "title": "Текст для поиска",
+         "comment": "Введите в поисковой строке текст для поиска нужного товара."},
+       { "image": "buy3.png", "title": "Добавление в корзину",
+         "comment": "Нажмите кнопку в нижней части экрана для добавления товара в корзину."},
+       { "image": "buy4.png", "title": "Переход в корзину",
+         "comment": "После того, как добавили все необходимые товары, нажмите на иконку с корзиной."},
+       { "image": "buy5.png", "title": "Работа с корзиной",
+         "comment": "Убедитесь, что добавлены все нужные товары и нажмите кнопку &quot;Продолжить&quot;."},
+       { "image": "buy6.png", "title": "Выбор товаров по акциям",
+         "comment": "Выберите товары по акциям и нажмите кнопку &quot;Продолжить&quot;."},
+       { "image": "buy6a.png", "title": "Выбор получателя",
+         "comment": "При необходимости, уточните кто будет получать заказ."},
+       { "image": "buy6b.png", "title": "Выбор способа доставки",
+         "comment": "Выберите способ доставки заказа."},
+       { "image": "buy7.png", "title": "Подтверждение заказа",
+         "comment": "Убедитесь, что все нужные товары в заказе и нажмите кнопку &quot;Подтвердить заказ&quot;."}
+     ]
+   },
+   {
+     "page": "about",
+     "slides": [
+       { "image": "3.jpg", "title": "Проект Альфа",
+         "comment": "Узнайте больше о наших <a href='/about' class='inline-link'>технологиях</a> и методах работы."},
+       { "image": "2.jpg", "title": "Галерея работ",
+         "comment": "Все фотографии доступны в нашем <a href='/instagram' class='inline-link'>профиле соцсетей</a>."},
+       { "image": "1.jpg", "title": "Связаться с нами",
+         "comment": "Остались вопросы? <a href='mailto:info@site.com' class='inline-link'>Напишите нам письмо</a> прямо сейчас."}
+     ]
+   }
+]
+</script>
+</body>
+</html>
