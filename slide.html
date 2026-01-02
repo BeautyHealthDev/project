@@ -134,7 +134,7 @@
           bottom: 10px;
           font-size: 16px;
           pointer-events: none;
-          background-color: #cc0000; /* Красный, под стиль стрелок */
+          background-color: #ff4d4d; /* Красный, под стиль стрелок */
           color: white;
         }
 
@@ -244,7 +244,7 @@
         // 3. Динамическая генерация слайдов
         renderTarget.innerHTML = slideData.map(slide => `
           <li class="glide__slide">
-            <img src="${slide.image}" alt="${slide.title}">
+            <img src="images/${slide.image}" alt="${slide.title}">
           </li>
         `).join('');
 
@@ -344,7 +344,7 @@
      "slides": [
        { "image": "buy1.png", "title": "Сделать заказ - поиск товара",
          "comment": "Нажмите на иконку с лупой для перехода к быстрому поиску товара."},
-       { "image": "buy2.png", "title": "Текст для поиска",
+       { "image": "buy2.png", "title": "Текст для поиска и выбор товара",
          "comment": "Введите в поисковой строке текст для поиска и выберите в результатах поиска нужный товар."},
        { "image": "buy3.png", "title": "Добавление в корзину",
          "comment": "Нажмите кнопку в нижней части экрана для добавления товара в корзину."},
