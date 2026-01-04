@@ -203,6 +203,54 @@
           pointer-events: none !important;
         }
 
+        /* Слой затемнения */
+        .fullscreen-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background-color: rgba(сс, 0, 0, 0.9);
+          backdrop-filter: blur(10px); /* Размытие в стиле Material You */
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          z-index: 2000;
+          opacity: 0;
+          visibility: hidden;
+          transition: opacity 0.3s ease, visibility 0.3s;
+        }
+
+        /* Когда активно */
+        .fullscreen-overlay.visible {
+          opacity: 1;
+          visibility: visible;
+        }
+
+        /* Изображение с анимацией увеличения */
+        .fullscreen-overlay img {
+          max-width: 95%;
+          max-height: 95%;
+          border-radius: 24px; /* Крупные углы Android 2026 */
+          transform: scale(0.8);
+          transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); /* Пружинистая анимация */
+        }
+
+        .fullscreen-overlay.visible img {
+          transform: scale(1);
+        }
+
+        /* Кнопка закрытия */
+        .close-btn {
+          position: absolute;
+          top: 30px;
+          right: 30px;
+          color: white;
+          font-size: 40px;
+          cursor: pointer;
+          z-index: 2100;
+        }
+
     </style>
 </head>
 <body>
@@ -223,8 +271,32 @@
             </div>
         </div>
     </div>
-    
-<script>
+    <!-- Окно полноэкранного просмотра -->
+    <div id="fullscreen-overlay" class="fullscreen-overlay" onclick="closeFullscreen()">
+        <span class="close-btn">&times;</span>
+        <img id="fullscreen-img" src="" alt="Full Screen">
+    </div>
+
+    <script>
+    function openFullscreen() {
+      // Находим текущее активное изображение в вашем слайдере
+      const activeSlideImg = document.querySelector('.glide__slide--active img'); // Укажите селектор вашего слайда
+      const overlay = document.getElementById('fullscreen-overlay');
+      const fullImg = document.getElementById('fullscreen-img');
+
+      if (activeSlideImg) {
+        fullImg.src = activeSlideImg.src; // Копируем путь к картинке
+        overlay.classList.add('visible');
+        document.body.style.overflow = 'hidden'; // Блокируем прокрутку фона
+      }
+    }
+
+    function closeFullscreen() {
+      const overlay = document.getElementById('fullscreen-overlay');
+      overlay.classList.remove('visible');
+      document.body.style.overflow = 'auto'; // Возвращаем прокрутку
+    }
+
     function initSlider() {
       try {
         // 1. Получаем параметр ?page= из URL
@@ -244,7 +316,7 @@
         // 3. Динамическая генерация слайдов
         renderTarget.innerHTML = slideData.map(slide => `
           <li class="glide__slide">
-            <img src="images/${slide.image}" alt="${slide.title}">
+            <img src="images/${slide.image}" alt="${slide.title}" onclick="openFullscreen()">
           </li>
         `).join('');
 
@@ -342,7 +414,7 @@
  {
      "page": "buy",
      "slides": [
-       { "image": "buy1.png", "title": "Сделать заказ - поиск товара",
+       { "image": "buy1.png", "title": "Сделать покупку - поиск товара",
          "comment": "Нажмите на иконку с лупой для перехода к быстрому поиску товара."},
        { "image": "buy2.png", "title": "Текст для поиска и выбор товара",
          "comment": "Введите в поисковой строке текст для поиска и выберите в результатах поиска нужный товар."},
@@ -351,15 +423,15 @@
        { "image": "buy4.png", "title": "Переход в корзину",
          "comment": "После того, как добавили все необходимые товары, нажмите на иконку с корзиной."},
        { "image": "buy5.png", "title": "Работа с корзиной",
-         "comment": "Убедитесь, что добавлены все нужные товары и нажмите кнопку &quot;Продолжить&quot;."},
+         "comment": "Убедитесь, что добавлены все нужные товары и нажмите кнопку \"Продолжить\"."},
        { "image": "buy6.png", "title": "Выбор товаров по акциям",
-         "comment": "Выберите товары по акциям и нажмите кнопку &quot;Продолжить&quot;."},
+         "comment": "Выберите товары по акциям и нажмите кнопку \"Продолжить\"."},
        { "image": "buy6a.png", "title": "Выбор получателя",
          "comment": "При необходимости уточните кто будет получать заказ."},
        { "image": "buy6b.png", "title": "Выбор способа доставки",
          "comment": "Выберите способ доставки заказа."},
        { "image": "buy7.png", "title": "Подтверждение заказа",
-         "comment": "Убедитесь, что все нужные товары в заказе и нажмите кнопку &quot;Подтвердить заказ&quot;."},
+         "comment": "Убедитесь, что все нужные товары в заказе и нажмите кнопку \"Подтвердить заказ\"."},
        { "image": "buy8.png", "title": "Переход к оплате",
          "comment": "Сразу после утверждения заказа можно перейти к его оплате, нажав на кнопку внизу экрана"},
        { "image": "buy9.png", "title": "Оплата утвержденного заказа",
