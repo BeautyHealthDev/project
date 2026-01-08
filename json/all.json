@@ -7,30 +7,6 @@
       "link": "https://beautyhealthdev.github.io/project/",
       "linkTitle": "Перейти к ответам",
       "isRead": false
-    },
-    {
-      "id": 2,
-      "title": "Как сделать покупку?",
-      "text": "Инструкция о том, как найти товар, добавить в корзину и оформить заказ",
-      "link": "https://beautyhealthdev.github.io/project/slide.html?page=buy",
-      "linkTitle": "Как купить товары",
-      "isRead": false
-    },
-    {
-      "id": 3,
-      "title": "Где мой заказ?",
-      "text": "Инструкция о том, как найти заказ в списке и посмотреть его состояние",
-      "link": "https://beautyhealthdev.github.io/project/slide.html?page=myorder",
-      "linkTitle": "Как найти свой заказ",
-      "isRead": false
-    },
-    {
-      "id": 4,
-      "title": "Как написать в \"Обратную связь\"?",
-      "text": "Инструкция о том, как создать новую заявку и посмотреть ответ на неё",
-      "link": "https://beautyhealthdev.github.io/project/slide.html?page=feedback",
-      "linkTitle": "Про \"Обратную связь\"",
-      "isRead": false
     }
   ],
   "abonents": []
