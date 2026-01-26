@@ -15,6 +15,14 @@
       "link": "https://faberlic.com/index.php?option=com_catalog&view=listgoods&bnew=1&orderid=14849927&Itemid=2075",
       "linkTitle": "Перейти к новинкам",
       "isRead": false
+    },
+    {
+      "id": 3,
+      "title": "Период 2/2026",
+      "text": "Стартовал новый период 2/2026. Встречайте продукты серии Store D'amore, духи для женщин и многое другое.",
+      "link": "https://faberlic.com/index.php?option=com_content&view=service&layout=content&content=news-11769",
+      "linkTitle": "Перейти к акциям периода",
+      "isRead": false
     }
   ],
   "abonents": []
