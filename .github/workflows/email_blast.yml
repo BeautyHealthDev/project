@@ -1,0 +1,80 @@
+name: Email Blast from mailing folder
+
+on:
+  workflow_dispatch:
+    inputs:
+      template_name:
+        description: 'Имя файла шаблона в папке mailing (например, promo.txt)'
+        required: true
+        default: 'template.txt'
+
+jobs:
+  send-emails:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Send Emails
+        env:
+          SMTP_USER: ${{ secrets.EMAIL_USER }}
+          SMTP_PASS: ${{ secrets.EMAIL_PASSWORD }}
+          TEMPLATE_FILENAME: ${{ github.event.inputs.template_name }}
+        run: |
+          python - <<EOF
+          import os
+          import json
+          import smtplib
+          import time
+          from email.mime.text import MIMEText
+
+          # Пути теперь ведут в папку mailing
+          folder = 'mailing'
+          json_path = os.path.join(folder, 'contacts.json')
+          template_path = os.path.join(folder, os.environ['TEMPLATE_FILENAME'])
+
+          # Проверка наличия папки и файлов
+          if not os.path.exists(json_path):
+              print(f"Ошибка: Файл {json_path} не найден!")
+              exit(1)
+          if not os.path.exists(template_path):
+              print(f"Ошибка: Шаблон {template_path} не найден!")
+              exit(1)
+
+          # Загрузка контактов и текста шаблона
+          with open(json_path, 'r', encoding='utf-8') as f:
+              contacts = json.load(f)
+          
+          with open(template_path, 'r', encoding='utf-8') as f:
+              template_text = f.read()
+
+          try:
+              server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+              server.login(os.environ['SMTP_USER'], os.environ['SMTP_PASS'])
+              
+              for person in contacts:
+                  # Персонализация (заменяет {name} в файле шаблона на имя из JSON)
+                  body = template_text.format(name=person.get('name', 'Пользователь'))
+                  
+                  msg = MIMEText(body, 'plain', 'utf-8')
+                  msg['Subject'] = "Рассылка 2026"
+                  msg['From'] = os.environ['SMTP_USER']
+                  msg['To'] = person['email']
+                  
+                  server.send_message(msg)
+                  print(f"Отправлено: {person['email']}")
+
+                  # Задержка 2 секунды (Antispam лимит)
+                  time.sleep(2) 
+
+              server.quit()
+              print("Рассылка успешно завершена.")
+          except Exception as e:
+              print(f"Ошибка: {e}")
+              exit(1)
+          EOF
