@@ -1,0 +1,53 @@
+name: Email Blast
+
+on:
+  workflow_dispatch:
+    inputs:
+      template_name:
+        description: 'Имя текстового файла в папке mailing'
+        required: true
+        default: 'template.txt' # Пример имени файла
+      delay_seconds:
+        description: 'Задержка (сек)'
+        required: true
+        default: '2'
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: set-matrix
+        run: |
+          JSON=$(jq -c '.' mailing/contacts.json)
+          echo "matrix=${JSON}" >> $GITHUB_OUTPUT
+
+  send-emails:
+    needs: prepare
+    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 1 
+      matrix:
+        contact: ${{ fromJson(needs.prepare.outputs.matrix) }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Anti-spam delay
+        run: sleep ${{ github.event.inputs.delay_seconds }}
+
+      - name: Send mail to ${{ matrix.contact.email }}
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          subject: "Уведомление для ${{ matrix.contact.name }}"
+          to: ${{ matrix.contact.email }}
+          from: "Your Team <${{ secrets.MAIL_USERNAME }}>"
+          # Читаем plain text шаблон из папки mailing
+          body: file://mailing/${{ github.event.inputs.template_name }}
