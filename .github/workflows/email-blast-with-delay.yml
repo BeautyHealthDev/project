@@ -1,12 +1,12 @@
-name: Email Blast
+name: Email Blast With Delay
 
 on:
   workflow_dispatch:
     inputs:
       template_name:
-        description: 'Имя текстового файла в папке mailing'
+        description: 'Имя файла в папке mailing (напр. message.txt)'
         required: true
-        default: 'template.txt' # Пример имени файла
+        default: 'template.txt'
       delay_seconds:
         description: 'Задержка (сек)'
         required: true
@@ -39,6 +39,14 @@ jobs:
       - name: Anti-spam delay
         run: sleep ${{ github.event.inputs.delay_seconds }}
 
+      # Шаг для замены {name} на реальное имя из контактов
+      - name: Prepare Template
+        id: prepare_template
+        run: |
+          # Читаем файл, заменяем {name} на значение из матрицы и сохраняем во временный файл
+          # Используем @ в качестве разделителя в sed на случай, если в имени есть слеши
+          sed "s/{name}/${{ matrix.contact.name }}/g" mailing/${{ github.event.inputs.template_name }} > prepared_email.txt
+
       - name: Send mail to ${{ matrix.contact.email }}
         uses: dawidd6/action-send-mail@v3
         with:
@@ -46,8 +54,8 @@ jobs:
           server_port: 465
           username: ${{ secrets.MAIL_USERNAME }}
           password: ${{ secrets.MAIL_PASSWORD }}
-          subject: "Уведомление для ${{ matrix.contact.name }}"
+          subject: "Здравствуйте, ${{ matrix.contact.name }}!"
           to: ${{ matrix.contact.email }}
           from: "Your Team <${{ secrets.MAIL_USERNAME }}>"
-          # Читаем plain text шаблон из папки mailing
-          body: file://mailing/${{ github.event.inputs.template_name }}
+          # Отправляем уже подготовленный временный файл
+          body: file://prepared_email.txt
