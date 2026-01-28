@@ -1,0 +1,23 @@
+name: Format XML
+
+on: [push]
+
+jobs:
+  pretty-xml:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Format XML with xmllint
+        run: |
+          # Устанавливаем инструмент, если его нет (в Ubuntu обычно есть)
+          sudo apt-get install -y libxml2-utils
+          # Форматируем файл и перезаписываем его
+          xmllint --format ./mailing/ReportMLM2MC.xml --output ./mailing/ReportMLM2MC.xml
+
+      - name: Commit changes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "style: auto-format XML report"
+          file_pattern: 'mailing/*.xml'
