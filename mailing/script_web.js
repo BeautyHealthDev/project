@@ -15,16 +15,18 @@ const reportPage = 'https://faberlic.com/rssreports/otchet.php?linkreport=/Repor
   await page.click('button[dt="login_signInBtn"]');
   // Ждем завершения навигации после клика
   await page.waitForNavigation();
+  console.log(`Страница ${loginPage} успешно загружена`);
 
   // 2. Переход на страницу с XML
   // Браузер сохранит сессию (cookies), поэтому повторный логин не потребуется
   const response = await page.goto(reportPage);
+  console.log(`Страница ${reportPage} успешно загружена`);
 
   // 3. Получаем содержимое XML и сохраняем в файл
   const path = './ReportMLM2MC.xml';
   const xmlContent = await response.text();
   fs.writeFileSync(path, xmlContent);
-  console.log(`Файл успешно скачан и сохранен в: ${path}`);
+  console.log(`XML-файл с отчетом успешно скачан и сохранен в: ${path}`);
 
   await browser.close();
 })();
