@@ -1,0 +1,23 @@
+name: Download Report XML
+
+on:
+  workflow_dispatch: # Позволяет запускать вручную
+
+jobs:
+  download-report:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Run Playwright script
+      env:
+        USER: ${{ secrets.FABERLIC_USER }}
+        PASS: ${{ secrets.FABERLIC_KEY }}
+      run: |
+        npm install playwright
+        npx playwright install chromium --with-deps
+        node script_web.js
+
+    - name: Upload XML result
+      uses: actions/upload-artifact@v4
+      with:
+        name: external-xml-data
+        path: mailing/ReportMLM2MC.xml
