@@ -1,23 +1,36 @@
-name: Format XML
+name: Format XML with Prettier
 
-on: [push]
+on:
+  push:
+    paths:
+      - '**/*.xml' # Запускать, только если изменились XML
+  pull_request:
+    branches: [ main ]
 
 jobs:
-  pretty-xml:
+  prettier:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Format XML with xmllint
-        run: |
-          # Устанавливаем инструмент, если его нет (в Ubuntu обычно есть)
-          sudo apt-get install -y libxml2-utils
-          # Форматируем файл и перезаписываем его
-          xmllint --format mailing/ReportMLM2MC.xml --output mailing/ReportMLM2MC.xml
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Prettier and XML Plugin
+        run: npm install prettier @prettier/plugin-xml
+
+      - name: Run Prettier
+        # --write перезапишет файлы, --check просто проверит
+        run: npx prettier --write "**/*.xml"
 
       - name: Commit changes
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "style: auto-format XML report"
-          file_pattern: 'mailing/*.xml'
+          commit_message: "style: format XML files with prettier"
+          file_pattern: '**/*.xml'
