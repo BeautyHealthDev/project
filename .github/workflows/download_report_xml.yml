@@ -10,13 +10,22 @@ jobs:
       # ЭТОТ ШАГ ОБЯЗАТЕЛЕН: он скачивает ваш script_web.js в Runner
       - name: Checkout repository
         uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: |
+          npm install playwright
+          npx playwright install chromium --with-deps
+
       - name: Run Playwright script
         env:
           USER: ${{ secrets.FABERLIC_USER }}
           PASS: ${{ secrets.FABERLIC_KEY }}
         run: |
-          npm install playwright
-          npx playwright install chromium --with-deps
           node mailing/script_web.js
   
       - name: Upload XML result
