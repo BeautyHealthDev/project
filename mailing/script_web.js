@@ -50,7 +50,7 @@ const reportPage = 'https://faberlic.com/rssreports/otchet.php?linkreport=/Repor
   const download = await downloadPromise;
 
   // 4. Сохранение скачанного файла
-  const path = './ReportMLM2MC.xml';
+  const path = 'ReportMLM2MC.xml';
   await download.saveAs(path);
   
   console.log(`Файл успешно скачан и сохранен в: ${path}`);
