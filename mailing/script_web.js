@@ -25,9 +25,9 @@ const reportPage = 'https://faberlic.com/rssreports/otchet.php?linkreport=/Repor
   const downloadPromise = page.waitForEvent('download');
   
   await page.evaluate(() => {
-    // Пауза
+    // Пауза для построения отчета
     console.log(`Пауза - старт`);
-    page.waitForTimeout(10000);
+    new Promise(resolve => setTimeout(resolve, 10000));
     console.log(`Пауза - финиш`);
     // Вызываем встроенную функцию ReportViewer
     $find('ReportViewerControl').exportReport('XML');
