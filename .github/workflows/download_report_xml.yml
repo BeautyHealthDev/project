@@ -32,4 +32,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: external-xml-data
-          path: mailing/ReportMLM2MC.xml
+          path: ReportMLM2MC.xml
