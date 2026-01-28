@@ -38,11 +38,11 @@ const reportPage = 'https://faberlic.com/rssreports/otchet.php?linkreport=/Repor
   // Мы запускаем ожидание ПЕРЕД тем, как вызвать команду экспорта
   const downloadPromise = page.waitForEvent('download');
   // Переходим по ссылке экспорта
-  await page.goto(exportUrl);
-  // await page.evaluate(() => {
-  //   // Вызываем встроенную функцию ReportViewer
-  //   $find('ReportViewerControl').exportReport('XML');
-  // });
+  // await page.goto(exportUrl);
+  await page.evaluate(() => {
+    // Вызываем встроенную функцию ReportViewer
+    $find('ReportViewerControl').exportReport('XML');
+  });
 
   const download = await downloadPromise;
 
