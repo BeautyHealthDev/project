@@ -27,7 +27,7 @@ jobs:
 
       - name: Run Prettier
         # --write перезапишет файлы, --check просто проверит
-        run: npx prettier --write "**/*.xml"
+        run: npx prettier --write "**/*.xml" --plugin=@prettier/plugin-xml
 
       - name: Commit changes
         uses: stefanzweifel/git-auto-commit-action@v5
