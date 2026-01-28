@@ -23,17 +23,19 @@ const reportPage = 'https://faberlic.com/rssreports/otchet.php?linkreport=/Repor
   // 3. Ожидание события загрузки и вызов JS функции
   // Ждем первичной загрузки интерфейса
   await page.waitForSelector('div[id*="ReportViewerControl"]', { state: 'attached' });
+  console.log(`ReportViewerControl найден`);
   
   // Ждем, пока SSRS "отлагает" внутри
   await page.waitForFunction(() => {
     const v = window.$find("ReportViewerControl");
+    console.log(`ReportViewerControl загружается`);
     return v && !v.get_isLoading();
   });
   
-  // Если нужно вызвать экспорт через URL (самый стабильный метод для Playwright)
-  // Вместо кликов по меню просто переходим по прямой ссылке:
-  const currentUrl = page.url();
-  const exportUrl = currentUrl.replace('Reserved.ReportViewerWebControl.axd', 'ReportServer') + '&rs:Format=XML';
+  // // Если нужно вызвать экспорт через URL (самый стабильный метод для Playwright)
+  // // Вместо кликов по меню просто переходим по прямой ссылке:
+  // const currentUrl = page.url();
+  // const exportUrl = currentUrl.replace('Reserved.ReportViewerWebControl.axd', 'ReportServer') + '&rs:Format=XML';
   
   // Мы запускаем ожидание ПЕРЕД тем, как вызвать команду экспорта
   const downloadPromise = page.waitForEvent('download');
@@ -42,6 +44,7 @@ const reportPage = 'https://faberlic.com/rssreports/otchet.php?linkreport=/Repor
   await page.evaluate(() => {
     // Вызываем встроенную функцию ReportViewer
     $find('ReportViewerControl').exportReport('XML');
+    console.log(`exportReport для XML запущен`);
   });
 
   const download = await downloadPromise;
