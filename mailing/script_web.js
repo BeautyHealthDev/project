@@ -1,7 +1,7 @@
 const { chromium } = require('playwright');
 const fs = require('fs');
 const loginPage = 'https://faberlic.com/ru/ru/login';
-const reportPage = 'https://faberlic.com/rssreports/otchet.php?linkreport=/ReportServer/Pages/ReportViewer.aspx?%2fRP_distributor%2fReportMLM2MC&rs:Format=XML&nnumber=737127362&period=30000000521&nullsum=1&ownstructure=0&hidezombnull=0&lang=RU';
+const reportPage = 'https://faberlic.com/rssreports/otchet.php?linkreport=/ReportServer/Pages/ReportViewer.aspx?%2fRP_distributor%2fReportMLM2MC&rs:Format=XML&nnumber=737127362&period=30000000521&nullsum=0&ownstructure=1&hidezombnull=0&lang=RU';
 
 (async () => {
   const browser = await chromium.launch();
@@ -19,7 +19,7 @@ const reportPage = 'https://faberlic.com/rssreports/otchet.php?linkreport=/Repor
 
   // 2. Переход на страницу с XML
   // Браузер сохранит сессию (cookies), поэтому повторный логин не потребуется
-  const response = await page.goto(reportPage);
+  const response = await page.goto(reportPage, { timeout: 120000 });
   console.log(`Страница ${reportPage} успешно загружена`);
 
   // 3. Получаем содержимое XML и сохраняем в файл
