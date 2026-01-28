@@ -22,7 +22,7 @@ const reportPage = 'https://faberlic.com/rssreports/otchet.php?linkreport=/Repor
 
   // 3. Ожидание события загрузки и вызов JS функции
   // Ждем первичной загрузки интерфейса
-  await page.waitForSelector('input[name*="ReportViewerControl"][name$="ctl0"]', { state: 'attached' });
+  await page.waitForSelector('div[id*="ReportViewerControl"]', { state: 'attached' });
   
   // Ждем, пока SSRS "отлагает" внутри
   await page.waitForFunction(() => {
