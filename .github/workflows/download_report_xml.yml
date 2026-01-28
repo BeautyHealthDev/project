@@ -12,6 +12,8 @@ jobs:
       # ЭТОТ ШАГ ОБЯЗАТЕЛЕН: он скачивает ваш script_web.js в Runner
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.ACTION_PAT }}
         
       - name: Setup Node.js
         uses: actions/setup-node@v4
