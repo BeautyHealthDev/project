@@ -1,13 +1,13 @@
 const { chromium } = require('playwright');
 const fs = require('fs');
 const loginPage = 'https://faberlic.com/ru/ru/login';
-const repInitPage = 'https://faberlic.com/index.php?option=com_edit&view=edit&listid=559&Itemid=5392';
 const nnumber = process.env.USER;
 const period = process.env.PERIOD;
 const nullsum = process.env.NULLSUM;
 const ownstructure = process.env.OWNSTRUCTURE;
 // const hidezombnull = process.env.HIDEZOMBNULL;
 // const reportPage = `https://faberlic.com/rssreports/otchet.php?linkreport=/ReportServer/Pages/ReportViewer.aspx?%2fRP_distributor%2fReportMLM2MC&rs:Command=Render&rc:Stylesheet=htmlviewer&nnumber=${nnumber}&period=${period}&nullsum=${nullsum}&ownstructure=${ownstructure}&hidezombnull=${hidezombnull}&lang=RU`;
+const repInitPage = `https://faberlic.com/index.php?option=com_edit&view=edit&listid=559&Itemid=5392&sponsornumber=${nnumber}`;
 
 (async () => {
   const browser = await chromium.launch();
