@@ -39,7 +39,7 @@ jobs:
               data = json.load(f)
   
           for item in data:
-              full_name = item.pop('name', '').strip()
+              full_name = item.get('name', '').strip()
               parts = full_name.split()
               
               # Базовое разделение
