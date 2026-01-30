@@ -1,6 +1,8 @@
 name: Download Report XML
 
 on:
+  schedule:
+      - cron: '0 11 * * *' # Раз в день
   workflow_dispatch: # Позволяет запускать вручную
     inputs:
         period:
@@ -56,11 +58,12 @@ jobs:
             ${{ 
               inputs.period == '01/2026' && '30000000520' || 
               inputs.period == '02/2026' && '30000000521' || 
-              inputs.period == '03/2026' && '30000000522' 
+              inputs.period == '03/2026' && '30000000522' ||
+              '02/2026'
             }}
-          NULLSUM: ${{ inputs.nullsum && 1 || 0 }}
-          OWNSTRUCTURE: ${{ inputs.ownstructure && 1 || 0 }}
-          HIDEZOMBNULL: ${{ inputs.hidezombnull && 1 || 0 }}
+          NULLSUM: ${{ inputs.nullsum == null && 1 || (inputs.nullsum && 1 || 0 ) }}
+          OWNSTRUCTURE: ${{ inputs.ownstructure == null && 0 || (inputs.ownstructure && 1 || 0) }}
+          HIDEZOMBNULL: ${{ inputs.hidezombnull == null && 0 || (inputs.hidezombnull && 1 || 0) }}
         run: |
           node mailing/script_web.js
           
