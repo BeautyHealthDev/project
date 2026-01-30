@@ -15,7 +15,7 @@
     <xsl:for-each select="r:Report/r:TableMLM/r:Detail_Collection/r:Detail[@DREGDATE &gt;= $fromDate and @DREGDATE &lt;= $toDate]">
         {
           "name": "<xsl:value-of select="SCONS"/>",
-          "reg-date": "<xsl:value-of select="DREGDATE"/>"
+          "reg-date": "<xsl:value-of select="DREGDATE"/>",
           "email": "<xsl:value-of select="SCONSEMAIL"/>"          
         }<xsl:if test="position() != last()">,</xsl:if>
     </xsl:for-each>
