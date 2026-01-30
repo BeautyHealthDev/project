@@ -62,7 +62,7 @@ jobs:
           OWNSTRUCTURE: ${{ inputs.ownstructure && 1 || 0 }}
           HIDEZOMBNULL: ${{ inputs.hidezombnull && 1 || 0 }}
         run: |
-          node mailing/script_web.js USER PERIOD NULLSUM OWNSTRUCTURE HIDEZOMBNULL
+          node mailing/script_web.js
   
       - name: Upload XML result to mailing folder
         run: |
