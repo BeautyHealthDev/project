@@ -26,7 +26,7 @@ jobs:
           # Запускаем трансформацию с параметрами
           xsltproc --stringparam fromDate "$YESTERDAY" \
                    --stringparam toDate "$YESTERDAY" \
-                   mailing/contacts_new_with_dates.xslt mailing/ReportMLM2MC.xml > contacts_new_with_dates.json
+                   mailing/contacts_new_with_dates.xsl mailing/ReportMLM2MC.xml > contacts_new_with_dates.json
           
           # Вывод результата в лог для проверки
           cat contacts_new_with_dates.json
