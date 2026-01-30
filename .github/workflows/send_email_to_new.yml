@@ -28,42 +28,11 @@ jobs:
           xsltproc --stringparam fromDate "$YESTERDAY" \
                    --stringparam toDate "$YESTERDAY" \
                    mailing/contacts_new_with_dates.xsl mailing/ConsultantTreeMLM.xml > contacts_new_with_dates.json
-          
-      - name: Post-process JSON (FIO logic)
-        run: |
-          python3 -c "
-          import json
-          import os
-  
-          with open('contacts_new_with_dates.json', 'r', encoding='utf-8') as f:
-              data = json.load(f)
-  
-          for item in data:
-              full_name = item.get('name', '').strip()
-              parts = full_name.split()
-              
-              # Базовое разделение
-              ln = parts[0] if len(parts) > 0 else ''
-              fn = parts[1] if len(parts) > 1 else ''
-              mn = ' '.join(parts[2:]) if len(parts) > 2 else ''
-              
-              # Логика Кызы / Оглы
-              if fn.lower() in ['кызы', 'оглы']:
-                  fn = f'{fn} {mn}'.strip()
-                  mn = ''
-              
-              item['last_name'] = ln
-              item['first_name'] = fn
-              item['middle_name'] = mn
-  
-          with open('final_contacts_new_with_dates.json', 'w', encoding='utf-8') as f:
-              json.dump(data, f, ensure_ascii=False, indent=2)
-          "
           # Вывод результата в лог для проверки
-          cat final_contacts_new_with_dates.json
+          cat contacts_new_with_dates.json
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: new-contacts
-          path: final_contacts_new_with_dates.json
+          path: contacts_new_with_dates.json
