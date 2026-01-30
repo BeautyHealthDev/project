@@ -2,7 +2,7 @@ name: Download ConsultantTreeMLM XML
 
 on:
   schedule:
-      - cron: '10 12 * * *' # Раз в день
+      - cron: '0 4 * * *' # Раз в день
   workflow_dispatch: # Позволяет запускать вручную
     inputs:
         period:
@@ -22,11 +22,7 @@ on:
           description: 'Показывать только свою структуру'
           type: boolean
           default: true
-        hidezombnull:
-          description: 'Скрыть неактивных ВВК'
-          type: boolean
-          default: true
-
+          
 jobs:
   download-report:
     runs-on: ubuntu-latest
@@ -63,7 +59,6 @@ jobs:
             }}  # ^^^ Для запуска по расписанию значение по-умолчанию 02/2026
           NULLSUM: ${{ inputs.nullsum == null && 1 || (inputs.nullsum && 1 || 0 ) }}
           OWNSTRUCTURE: ${{ inputs.ownstructure == null && 0 || (inputs.ownstructure && 1 || 0) }}
-          HIDEZOMBNULL: ${{ inputs.hidezombnull == null && 0 || (inputs.hidezombnull && 1 || 0) }}
         run: |
           node mailing/script_load_ConsultantTreeMLM.js
           
