@@ -60,7 +60,7 @@ jobs:
               json.dump(data, f, ensure_ascii=False, indent=2)
           "
           # Вывод результата в лог для проверки
-          cat contacts_new_with_dates.json
+          cat final_contacts_new_with_dates.json
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
