@@ -12,14 +12,18 @@
     
     <xsl:template match="/">
 [
-    <xsl:for-each select="r:Report/r:TableMLM/r:Detail_Collection/r:Detail[
+    <xsl:for-each select="r:Report/r:table1/r:Detail_Collection/r:Detail[
         translate(@DREGDATE, '-:T', '') &gt;= translate($fromDate, '-:T', '') and 
-        translate(@DREGDATE, '-:T', '') &lt;= translate($toDate, '-:T', '')
+        translate(@DREGDATE, '-:T', '') &lt;= translate($toDate, '-:T', '') and
+        @SBSENDMAIL = 'Да'
     ]">
         {
-          "name": "<xsl:value-of select="@SCONS"/>",
-          "reg-date": "<xsl:value-of select="translate(substring(@DREGDATE, 1, 10), '-', '.')"/>",
-          "email": "<xsl:value-of select="@SCONSEMAIL"/>"
+          "name": "<xsl:value-of select="@textbox19"/>",  
+          "lastname": "<xsl:value-of select="@SLASTNAME"/>",
+          "firstname": "<xsl:value-of select="@SFIRSTNAME"/>",
+          "patronymic": "<xsl:value-of select="@SPATRONYMIC"/>",
+          "regdate": "<xsl:value-of select="translate(substring(@DREGDATE, 1, 10), '-', '.')"/>",
+          "email": "<xsl:value-of select="@textbox109"/>"
         }<xsl:if test="position() != last()">,</xsl:if>
     </xsl:for-each>
 ]
