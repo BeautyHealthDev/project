@@ -1,0 +1,33 @@
+name: Send E-mails to new consultants 
+
+on:
+  push:
+    paths:
+      - 'mailing/ReportMLM2MC.xml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Transform XML to JSON
+        run: |
+          # Получаем дату в нужном формате
+          YESTERDAY=$(date -d "yesterday" +'%Y-%m-%dT00:00:00')"
+          
+          # Запускаем трансформацию с параметрами
+          xsltproc --stringparam fromDate "$YESTERDAY" \
+                   --stringparam toDate "$YESTERDAY" \
+                   mailing/contacts_new_with_dates.xslt mailing/ReportMLM2MC.xml > contacts_new_with_dates.json
+          
+          # Вывод результата в лог для проверки
+          cat contacts_new_with_dates.json
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: json-report
+          path: contacts_new_with_dates.json
