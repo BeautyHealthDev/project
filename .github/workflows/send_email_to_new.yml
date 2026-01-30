@@ -3,7 +3,7 @@ name: Send E-mails to new consultants
 on:
   push:
     paths:
-      - 'mailing/ReportMLM2MC.xml'
+      - 'mailing/ConsultantTreeMLM.xml'
   workflow_dispatch:
 
 jobs:
@@ -27,7 +27,7 @@ jobs:
           # Запускаем трансформацию с параметрами
           xsltproc --stringparam fromDate "$YESTERDAY" \
                    --stringparam toDate "$YESTERDAY" \
-                   mailing/contacts_new_with_dates.xsl mailing/ReportMLM2MC.xml > contacts_new_with_dates.json
+                   mailing/contacts_new_with_dates.xsl mailing/ConsultantTreeMLM.xml > contacts_new_with_dates.json
           
       - name: Post-process JSON (FIO logic)
         run: |
