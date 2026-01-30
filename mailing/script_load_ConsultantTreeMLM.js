@@ -6,7 +6,8 @@ const period = process.env.PERIOD;
 const nullsum = process.env.NULLSUM;
 const ownstructure = process.env.OWNSTRUCTURE;
 const hidezombnull = process.env.HIDEZOMBNULL;
-const reportPage = `https://faberlic.com/rssreports/otchet.php?linkreport=/ReportServer/Pages/ReportViewer.aspx?%2fRP_distributor%2fReportMLM2MC&rs:Command=Render&rc:Stylesheet=htmlviewer&nnumber=${nnumber}&period=${period}&nullsum=${nullsum}&ownstructure=${ownstructure}&hidezombnull=${hidezombnull}&lang=RU`;
+// const reportPage = `https://faberlic.com/rssreports/otchet.php?linkreport=/ReportServer/Pages/ReportViewer.aspx?%2fRP_distributor%2fReportMLM2MC&rs:Command=Render&rc:Stylesheet=htmlviewer&nnumber=${nnumber}&period=${period}&nullsum=${nullsum}&ownstructure=${ownstructure}&hidezombnull=${hidezombnull}&lang=RU`;
+const reportPage = `https://faberlic.com/rssreports/otchet.php?linkreport=/ReportServer/Pages/ReportViewer.aspx?%2fRPP%2fConsultantTreeMLM&rs:Command=Render&rc:Stylesheet=htmlviewer&cons=${nnumber}&period=${period}&cur=445&ownstructure=${ownstructure}&=${nullsum}&lang=RU`;
 console.log(`Сформирован URL отчета: ${reportPage}`);
 
 (async () => {
@@ -38,25 +39,18 @@ console.log(`Сформирован URL отчета: ${reportPage}`);
     return v && !v.get_isLoading();
   });
   
-  // // Если нужно вызвать экспорт через URL (самый стабильный метод для Playwright)
-  // // Вместо кликов по меню просто переходим по прямой ссылке:
-  // const currentUrl = page.url();
-  // const exportUrl = currentUrl.replace('Reserved.ReportViewerWebControl.axd', 'ReportServer') + '&rs:Format=XML';
-  
   // Мы запускаем ожидание ПЕРЕД тем, как вызвать команду экспорта
   const downloadPromise = page.waitForEvent('download');
-  // Переходим по ссылке экспорта
-  // await page.goto(exportUrl);
   await page.evaluate(() => {
+    console.log(`exportReport для XML запущен`);
     // Вызываем встроенную функцию ReportViewer
     $find('ReportViewerControl').exportReport('XML');
-    console.log(`exportReport для XML запущен`);
   });
 
   const download = await downloadPromise;
 
   // 4. Сохранение скачанного файла
-  const path = 'ReportMLM2MC.xml';
+  const path = 'ConsultantTreeMLM.xml';
   await download.saveAs(path);
   
   console.log(`Файл успешно скачан и сохранен в: ${path}`);
