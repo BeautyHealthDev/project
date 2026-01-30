@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsl:stylesheet version="1.0"
     xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-    xmlns:r="ReportMLM2MC"
+    xmlns:r="ConsultantTreeMLM"
     exclude-result-prefixes="r">
 
     <!-- Указываем текстовый вывод, чтобы не было лишних XML тегов -->
@@ -18,7 +18,7 @@
         @SBSENDMAIL = 'Да'
     ]">
         {
-          "name": "<xsl:value-of select="@textbox19"/>",  
+          "name": "<xsl:value-of select="@textbox19"/>",
           "lastname": "<xsl:value-of select="@SLASTNAME"/>",
           "firstname": "<xsl:value-of select="@SFIRSTNAME"/>",
           "patronymic": "<xsl:value-of select="@SPATRONYMIC"/>",
