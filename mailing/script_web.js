@@ -1,12 +1,11 @@
 const { chromium } = require('playwright');
 const fs = require('fs');
 const loginPage = 'https://faberlic.com/ru/ru/login';
-const args = process.argv.slice(2);
-const nnumber = args[0];
-const period = args[1];
-const nullsum = args[2];
-const ownstructure = args[3];
-const hidezombnull = args[4];
+const nnumber = process.env.USER;
+const period = process.env.PERIOD;
+const nullsum = process.env.NULLSUM;
+const ownstructure = process.env.OWNSTRUCTURE;
+const hidezombnull = process.env.HIDEZOMBNULL;
 const reportPage = `https://faberlic.com/rssreports/otchet.php?linkreport=/ReportServer/Pages/ReportViewer.aspx?%2fRP_distributor%2fReportMLM2MC&rs:Command=Render&rc:Stylesheet=htmlviewer&nnumber=${nnumber}&period=${period}&nullsum=${nullsum}&ownstructure=${ownstructure}&hidezombnull=${hidezombnull}&lang=RU`;
 console.log(`Сформирован URL отчета: ${reportPage}`);
 
