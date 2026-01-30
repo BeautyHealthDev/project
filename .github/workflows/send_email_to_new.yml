@@ -22,7 +22,8 @@ jobs:
         run: |
           # Получаем дату в нужном формате
           YESTERDAY=$(date -d 'yesterday' +'%Y-%m-%dT00:00:00')
-          
+          # Выводим в консоль для проверки
+          echo "Value of YESTERDAY: $YESTERDAY"
           # Запускаем трансформацию с параметрами
           xsltproc --stringparam fromDate "$YESTERDAY" \
                    --stringparam toDate "$YESTERDAY" \
