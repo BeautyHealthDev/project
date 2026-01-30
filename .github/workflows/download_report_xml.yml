@@ -64,19 +64,14 @@ jobs:
         run: |
           node mailing/script_web.js
   
-      - name: Upload XML result to mailing folder
-        run: |
-          # Создаем папку, если она не существует
-          mkdir -p mailing
-          
-          # Перемещаем файл в целевую папку
-          mv ReportMLM2MC.xml mailing/
-          
-          # Конфигурация Git
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
-          
-          # Фиксация изменений
-          git add mailing/ReportMLM2MC.xml
-          git commit -m "chore: update ReportMLM2MC.xml in mailing folder" || echo "No changes to commit"
-          git push origin main
+      - name: Install Prettier
+        run: npm install prettier @prettier/plugin-xml
+
+      - name: Format XML (Сразу после загрузки)
+        run: npx prettier --write "mailing/ReportMLM2MC.xml" --plugin=@prettier/plugin-xml
+
+      - name: Commit Beautiful XML
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "data: update and format report"
+          file_pattern: 'mailing/ReportMLM2MC.xml'
