@@ -1,6 +1,8 @@
+name: Daily activity
+
 on:
   schedule:
-    - cron: '0 13 * * *' 
+    - cron: '12 10 * * *' 
 
 jobs:
   call-main:
