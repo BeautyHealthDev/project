@@ -12,7 +12,7 @@
     
     <xsl:template match="/">
 {
-    <xsl:for-each select="r:Report/r:TableMLM/r:Detail_Collection/r:Detail[@DREGDATE >= $fromDate and @DREGDATE <= $toDate]">
+    <xsl:for-each select="r:Report/r:TableMLM/r:Detail_Collection/r:Detail[@DREGDATE &gt;= $fromDate and @DREGDATE &lt;= $toDate]">
         {
           "name": "<xsl:value-of select="SCONS"/>",
           "reg-date": "<xsl:value-of select="DREGDATE"/>"
