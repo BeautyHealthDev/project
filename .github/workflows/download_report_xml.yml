@@ -50,13 +50,14 @@ jobs:
           USER: ${{ secrets.FABERLIC_USER }}
           PASS: ${{ secrets.FABERLIC_KEY }}
           # Маппинг: описание -> строковой ID
+          # Для запуска по расписанию значение по-умолчанию 02/2026
           PERIOD: >-
             ${{ 
               inputs.period == '01/2026' && '30000000520' || 
               inputs.period == '02/2026' && '30000000521' || 
               inputs.period == '03/2026' && '30000000522' ||
               '30000000521'
-            }}  # ^^^ Для запуска по расписанию значение по-умолчанию 02/2026
+            }}
           NULLSUM: ${{ inputs.nullsum == null && 1 || (inputs.nullsum && 1 || 0 ) }}
           OWNSTRUCTURE: ${{ inputs.ownstructure == null && 0 || (inputs.ownstructure && 1 || 0) }}
         run: |
