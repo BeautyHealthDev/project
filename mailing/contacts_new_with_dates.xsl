@@ -11,8 +11,7 @@
     <xsl:param name="toDate" />
     
     <xsl:template match="/">
-{
-    
+[
     <xsl:for-each select="r:Report/r:TableMLM/r:Detail_Collection/r:Detail[
         translate(@DREGDATE, '-:T', '') &gt;= translate($fromDate, '-:T', '') and 
         translate(@DREGDATE, '-:T', '') &lt;= translate($toDate, '-:T', '')
@@ -23,7 +22,6 @@
           "email": "<xsl:value-of select="@SCONSEMAIL"/>"
         }<xsl:if test="position() != last()">,</xsl:if>
     </xsl:for-each>
-
-}
+]
     </xsl:template>
 </xsl:stylesheet>
