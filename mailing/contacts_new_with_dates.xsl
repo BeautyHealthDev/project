@@ -12,13 +12,18 @@
     
     <xsl:template match="/">
 {
-    <xsl:for-each select="r:Report/r:TableMLM/r:Detail_Collection/r:Detail[@DREGDATE &gt;= $fromDate and @DREGDATE &lt;= $toDate]">
+    
+    <xsl:for-each select="r:Report/r:TableMLM/r:Detail_Collection/r:Detail[
+        translate(@DREGDATE, '-:T', '') &gt;= translate($fromDate, '-:T', '') and 
+        translate(@DREGDATE, '-:T', '') &lt;= translate($toDate, '-:T', '')
+    ]">
         {
-          "name": "<xsl:value-of select="SCONS"/>",
-          "reg-date": "<xsl:value-of select="DREGDATE"/>",
-          "email": "<xsl:value-of select="SCONSEMAIL"/>"          
+          "name": "<xsl:value-of select="@SCONS"/>",
+          "reg-date": "<xsl:value-of select="translate(substring(@DREGDATE, 1, 10), '-', '.')"/>",
+          "email": "<xsl:value-of select="@SCONSEMAIL"/>"
         }<xsl:if test="position() != last()">,</xsl:if>
     </xsl:for-each>
+
 }
     </xsl:template>
 </xsl:stylesheet>
