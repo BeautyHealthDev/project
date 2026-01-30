@@ -5,7 +5,7 @@ const nnumber = process.env.USER;
 const period = process.env.PERIOD;
 const nullsum = process.env.NULLSUM;
 const ownstructure = process.env.OWNSTRUCTURE;
-const hidezombnull = process.env.HIDEZOMBNULL;
+// const hidezombnull = process.env.HIDEZOMBNULL;
 // const reportPage = `https://faberlic.com/rssreports/otchet.php?linkreport=/ReportServer/Pages/ReportViewer.aspx?%2fRP_distributor%2fReportMLM2MC&rs:Command=Render&rc:Stylesheet=htmlviewer&nnumber=${nnumber}&period=${period}&nullsum=${nullsum}&ownstructure=${ownstructure}&hidezombnull=${hidezombnull}&lang=RU`;
 const reportPage = `https://faberlic.com/rssreports/otchet.php?linkreport=/ReportServer/Pages/ReportViewer.aspx?%2fRPP%2fConsultantTreeMLM&rs:Command=Render&rc:Stylesheet=htmlviewer&cons=${nnumber}&period=${period}&cur=445&ownstructure=${ownstructure}&=${nullsum}&lang=RU`;
 console.log(`Сформирован URL отчета: ${reportPage}`);
