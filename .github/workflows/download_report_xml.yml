@@ -17,7 +17,7 @@ on:
         nullsum:
           description: 'Включить неактивных Консультантов'
           type: boolean
-          default: false
+          default: true
         ownstructure:
           description: 'Показывать только свою структуру'
           type: boolean
