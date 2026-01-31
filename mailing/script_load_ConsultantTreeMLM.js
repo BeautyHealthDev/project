@@ -36,15 +36,17 @@ console.log(`Сформирован URL отчета: ${reportPage}`);
   page.setDefaultNavigationTimeout(0); 
   page.setDefaultTimeout(0); 
   // Ждем, пока SSRS "отлагает" внутри
+  // 1. Ждем, пока исчезнет индикатор "Loading..." (если он есть в DOM)
+  await page.waitForSelector('#ReportViewerControl_AsyncWait_Wait', { state: 'hidden', timeout: 120000 }).catch(() => {});
+  // 2. Ждем, пока в области отчета появится реальный контент (таблица или ячейка)
+  await page.waitForSelector('div[id*="VisibleReportContent"]', { timeout: 120000 });
+  // 3. И только теперь проверяем статус через waitForFunction
   await page.waitForFunction(() => {
-    const v = window.$find("ReportViewerControl");
-    // 1. Проверяем, что контроллер существует
-    // 2. Проверяем, что отчет НЕ в состоянии загрузки
-    // 3. Добавляем проверку, что отчет вообще инициализирован (не null)
-    return v && !v.get_isLoading() && v.get_reportAreaContentType() !== "None";
-  }, { timeout: 120000 });
-
-
+      const v = window.$find("ReportViewerControl");
+      // Проверяем, что отчет не грузится И область контента не пуста
+      return v && !v.get_isLoading() && v.get_reportAreaContentType() !== "None";
+  }, { timeout: 60000 });
+  
   // Мы запускаем ожидание ПЕРЕД тем, как вызвать команду экспорта
   const downloadPromise = page.waitForEvent('download');
   await page.evaluate(() => {
