@@ -16,18 +16,18 @@ on:
             - 03/2026
         nullsum:
           description: 'Включить неактивных Консультантов'
-          default: 'Нет'
+          default: 'No'
           type: choice
           options:
-            - Да
-            - Нет
+            - Yes
+            - No
         ownstructure:
           description: 'Показывать только свою структуру'
-          default: 'Да'
+          default: 'Yes'
           type: choice
           options:
-            - Да
-            - Нет
+            - Yes
+            - No
           
 jobs:
   download-report:
@@ -64,8 +64,8 @@ jobs:
               inputs.period == '03/2026' && '30000000522' ||
               '30000000521'
             }}
-          NULLSUM: ${{ (contains(inputs.nullsum, 'Да') || inputs.nullsum == null) && 1 || 0 }}
-          OWNSTRUCTURE: ${{ (contains(inputs.ownstructure, 'Нет') || inputs.ownstructure == null) && 0 || 1 }}
+          NULLSUM: ${{ (contains(inputs.nullsum, 'Yes') || inputs.nullsum == null) && 1 || 0 }}
+          OWNSTRUCTURE: ${{ (contains(inputs.ownstructure, 'No') || inputs.ownstructure == null) && 0 || 1 }}
         run: |
           echo "Значение NULLSUM: $NULLSUM, inputs.nullsum: >${{ inputs.nullsum }}<"
           echo "Значение OWNSTRUCTURE: $OWNSTRUCTURE, inputs.ownstructure: >${{ inputs.ownstructure }}<"
