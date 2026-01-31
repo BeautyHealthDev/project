@@ -67,6 +67,8 @@ jobs:
           NULLSUM: ${{ (inputs.nullsum == 'Да' || inputs.nullsum == null) && 1 || 0 }}
           OWNSTRUCTURE: ${{ (inputs.ownstructure == 'Нет' || inputs.ownstructure == null) && 0 || 1 }}
         run: |
+          echo "Значение NULLSUM: $NULLSUM, inputs.nullsum: ${{ inputs.nullsum }}"
+          echo "Значение OWNSTRUCTURE: $OWNSTRUCTURE, inputs.ownstructure: ${{ inputs.ownstructure }}"
           node mailing/script_load_ConsultantTreeMLM.js
           
       - name: Upload XML result to mailing folder
