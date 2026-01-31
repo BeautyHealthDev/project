@@ -64,11 +64,11 @@ jobs:
               inputs.period == '03/2026' && '30000000522' ||
               '30000000521'
             }}
-          NULLSUM: ${{ (inputs.nullsum == 'Да' || inputs.nullsum == null) && 1 || 0 }}
-          OWNSTRUCTURE: ${{ (inputs.ownstructure == 'Нет' || inputs.ownstructure == null) && 0 || 1 }}
+          NULLSUM: ${{ (contains(inputs.nullsum, 'Да') || inputs.nullsum == null) && 1 || 0 }}
+          OWNSTRUCTURE: ${{ (contains(inputs.ownstructure, 'Нет') || inputs.ownstructure == null) && 0 || 1 }}
         run: |
-          echo "Значение NULLSUM: $NULLSUM, inputs.nullsum: ${{ inputs.nullsum }}"
-          echo "Значение OWNSTRUCTURE: $OWNSTRUCTURE, inputs.ownstructure: ${{ inputs.ownstructure }}"
+          echo "Значение NULLSUM: $NULLSUM, inputs.nullsum: >${{ inputs.nullsum }}<"
+          echo "Значение OWNSTRUCTURE: $OWNSTRUCTURE, inputs.ownstructure: >${{ inputs.ownstructure }}<"
           node mailing/script_load_ConsultantTreeMLM.js
           
       - name: Upload XML result to mailing folder
