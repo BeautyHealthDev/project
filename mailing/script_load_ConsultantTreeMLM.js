@@ -31,10 +31,10 @@ console.log(`Сформирован URL отчета: ${reportPage}`);
   // Ждем первичной загрузки интерфейса
   await page.waitForSelector('div[id*="ReportViewerControl"]', { state: 'attached' });
   console.log(`ReportViewerControl найден`);
-
-  const viewerExists = await page.evaluate(() => !!window.$find("ReportViewerControl"));
-  console.log(`Viewer exists: ${viewerExists}`);
-
+  
+  // Снимает ограничение на навигацию и действия (0 = бесконечно)
+  page.setDefaultNavigationTimeout(0); 
+  page.setDefaultTimeout(0); 
   // Ждем, пока SSRS "отлагает" внутри
   await page.waitForFunction(() => {
     const v = window.$find("ReportViewerControl");
