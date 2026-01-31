@@ -16,12 +16,10 @@ on:
             - 03/2026
         nullsum:
           description: 'Включить неактивных Консультантов'
-          required: true
           type: boolean
           default: false
         ownstructure:
           description: 'Показывать только свою структуру'
-          required: true
           type: boolean
           default: true
           
@@ -60,8 +58,8 @@ jobs:
               inputs.period == '03/2026' && '30000000522' ||
               '30000000521'
             }}
-          NULLSUM: ${{ inputs.nullsum == null && 1 || (inputs.nullsum && 1 || 0 ) }}
-          OWNSTRUCTURE: ${{ inputs.ownstructure == null && 0 || (inputs.ownstructure && 1 || 0) }}
+          NULLSUM: ${{ (inputs.nullsum == 'true' || inputs.nullsum == null) && 1 || 0 }}
+          OWNSTRUCTURE: ${{ (inputs.ownstructure == 'false' || inputs.ownstructure == null) && 0 || 1 }}
         run: |
           node mailing/script_load_ConsultantTreeMLM.js
           
