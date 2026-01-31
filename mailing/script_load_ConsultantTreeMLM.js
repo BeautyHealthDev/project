@@ -25,7 +25,7 @@ console.log(`Сформирован URL отчета: ${reportPage}`);
   console.log(`Страница ${loginPage} успешно загружена`);
   
   // 2. Переход на страницу с отчетом
-  await page.goto(reportPage);
+  await page.goto(reportPage, { timeout: 400000 });
 
   // 3. Ожидание события загрузки и вызов JS функции
   // Ждем первичной загрузки интерфейса
@@ -33,15 +33,15 @@ console.log(`Сформирован URL отчета: ${reportPage}`);
   console.log(`ReportViewerControl найден`);
   
   // Ждем, пока SSRS "отлагает" внутри
-  // await page.waitForFunction(() => {
-  //   const v = window.$find("ReportViewerControl");
-  //   return v && !v.get_isLoading();
-  // });
   await page.waitForFunction(() => {
-    const v = window.$find && window.$find("ReportViewerControl");
-    // Если объект найден и он закончил загрузку — возвращаем true
-    return v && typeof v.get_isLoading === 'function' && !v.get_isLoading();
-  }, { timeout: 100000 });
+    const v = window.$find("ReportViewerControl");
+    return v && !v.get_isLoading();
+  });
+  // await page.waitForFunction(() => {
+  //   const v = window.$find && window.$find("ReportViewerControl");
+  //   // Если объект найден и он закончил загрузку — возвращаем true
+  //   return v && typeof v.get_isLoading === 'function' && !v.get_isLoading();
+  // }, { timeout: 100000 });
 
   
   // Мы запускаем ожидание ПЕРЕД тем, как вызвать команду экспорта
