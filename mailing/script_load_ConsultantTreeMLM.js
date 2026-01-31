@@ -38,8 +38,12 @@ console.log(`Сформирован URL отчета: ${reportPage}`);
   // Ждем, пока SSRS "отлагает" внутри
   await page.waitForFunction(() => {
     const v = window.$find("ReportViewerControl");
-    return v && !v.get_isLoading();
+    // 1. Проверяем, что контроллер существует
+    // 2. Проверяем, что отчет НЕ в состоянии загрузки
+    // 3. Добавляем проверку, что отчет вообще инициализирован (не null)
+    return v && !v.get_isLoading() && v.get_reportAreaContentType() !== "None";
   }, { timeout: 120000 });
+
 
   // Мы запускаем ожидание ПЕРЕД тем, как вызвать команду экспорта
   const downloadPromise = page.waitForEvent('download');
