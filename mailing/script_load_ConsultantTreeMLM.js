@@ -31,12 +31,15 @@ console.log(`Сформирован URL отчета: ${reportPage}`);
   // Ждем первичной загрузки интерфейса
   await page.waitForSelector('div[id*="ReportViewerControl"]', { state: 'attached' });
   console.log(`ReportViewerControl найден`);
-  
+
+  const viewerExists = await page.evaluate(() => !!window.$find("ReportViewerControl"));
+  console.log(`Viewer exists: ${viewerExists}`);
+
   // Ждем, пока SSRS "отлагает" внутри
   await page.waitForFunction(() => {
     const v = window.$find("ReportViewerControl");
     return v && !v.get_isLoading();
-  }, { timeout: 0 });
+  }, { timeout: 120000 });
 
   // Мы запускаем ожидание ПЕРЕД тем, как вызвать команду экспорта
   const downloadPromise = page.waitForEvent('download');
