@@ -29,7 +29,7 @@
               <xsl:when test="contains($afterFirst, ' ')"><xsl:value-of select="substring-before($afterFirst, ' ')"/></xsl:when>
               <xsl:otherwise><xsl:value-of select="$afterFirst"/></xsl:otherwise>
           </xsl:choose>",
-          "patronymic": "<xsl:value-of select="$afterSecond"/>"
+          "patronymic": "<xsl:value-of select="$afterSecond"/>",
           "regdate": "<xsl:value-of select="translate(substring(@DREGDATE, 1, 10), '-', '.')"/>",
           "email": "<xsl:value-of select="@SCONSEMAIL"/>"
         }<xsl:if test="position() != last()">,</xsl:if>
