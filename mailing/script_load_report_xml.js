@@ -60,7 +60,7 @@ console.log(`Сформирован URL ${report}-отчета: ${reportPage}`);
   const download = await downloadPromise;
 
   // 4. Сохранение скачанного файла
-  const path = '${report}.xml';
+  const path = `${report}.xml`;
   await download.saveAs(path);
   
   console.log(`Файл успешно скачан и сохранен в: ${path}`);
