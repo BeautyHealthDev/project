@@ -64,8 +64,8 @@ jobs:
               inputs.period == '03/2026' && '30000000522' ||
               '30000000521'
             }}
-          NULLSUM: ${{ contains(inputs.nullsum, 'Нет') && 0 || 1 }}
-          OWNSTRUCTURE: ${{ contains(inputs.ownstructure, 'Да') && 1 || 0 }}
+          NULLSUM: ${{ contains(inputs.nullsum, 'Нет') && '0' || '1' }}
+          OWNSTRUCTURE: ${{ contains(inputs.ownstructure, 'Да') && '1' || '0' }}
           REPORT: 'ConsultantTreeMLM'
         run: |
           echo "Значение NULLSUM: $NULLSUM, inputs.nullsum: >${{ inputs.nullsum }}<"
