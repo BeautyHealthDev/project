@@ -4,19 +4,46 @@ on:
   push:
     paths:
       - 'mailing/ConsultantTreeMLM.xml'
+      - 'mailing/ReportMLM2MC.xml'
   workflow_dispatch:
 
 jobs:
   build-contacts-list:
     runs-on: ubuntu-latest
+    env:
+      REPORT_TYPE: 'none' # Инициализация, чтобы избежать ошибки доступа
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Обязательно: выкачиваем историю, чтобы сравнить коммиты
 
+      - name: Detect File
+        id: detector
+        run: |
+          # Получаем список измененных файлов в текущем пуше
+          CHANGED_FILES=$(git diff-tree --no-commit-id --name-only -r ${{ github.sha }})
+
+          echo "Обнаружены изменения в файлах:"
+          echo "$CHANGED_FILES"
+
+          # Проверяем наличие конкретных файлов
+          if echo "$CHANGED_FILES" | grep -q "mailing/ReportMLM2MC.xml"; then
+            echo "REPORT_TYPE=ReportMLM2MC" >> $GITHUB_ENV
+            echo "found=true" >> $GITHUB_OUTPUT
+          elif echo "$CHANGED_FILES" | grep -q "mailing/ConsultantTreeMLM.xml"; then
+            echo "REPORT_TYPE=ConsultantTreeMLM" >> $GITHUB_ENV
+            echo "found=true" >> $GITHUB_OUTPUT
+          fi
       - name: Install xsltproc
         run: |
           sudo apt-get update
           sudo apt-get install -y xsltproc
+
+      - name: Use result
+        if: steps.detector.outputs.found == 'true'
+        run: |
+          echo "Работаем с отчетом: ${{ env.REPORT_TYPE }}"
           
       - name: Transform XML to JSON
         run: |
@@ -27,7 +54,7 @@ jobs:
           # Запускаем трансформацию с параметрами
           xsltproc --stringparam fromDate "$YESTERDAY" \
                    --stringparam toDate "$YESTERDAY" \
-                   mailing/contacts_new_with_dates.xsl mailing/ConsultantTreeMLM.xml > contacts_new_with_dates.json
+                   mailing/contacts_new_${REPORT_TYPE}.xsl mailing/${REPORT_TYPE}.xml > contacts_new_with_dates.json
           # Вывод результата в лог для проверки
           cat contacts_new_with_dates.json
 
