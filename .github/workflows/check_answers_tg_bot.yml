@@ -24,7 +24,7 @@ jobs:
         run: |
           # 1. Перезапуск на PythonAnywhere
           RESTART_RES=$(curl -s -X POST \
-            "https://www.pythonanywhere.com${{ secrets.PA_USERNAME }}/webapps/${{ secrets.PA_DOMAIN }}/reload/" \
+            "https://www.pythonanywhere.com/api/v0/user/${{ secrets.PA_USERNAME }}/webapps/${{ secrets.PA_DOMAIN }}/reload/" \
             -H "Authorization: Token ${{ secrets.PA_API_TOKEN }}")
           
           # 2. Уведомление в Telegram
