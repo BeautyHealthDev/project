@@ -2,7 +2,7 @@ name: Download ConsultantTreeMLM XML
 
 on:
   schedule:
-      - cron: '0 4 * * *' # Раз в день
+      - cron: '0 3 * * *' # Раз в день
   workflow_dispatch: # Позволяет запускать вручную
     inputs:
         period:
@@ -66,10 +66,11 @@ jobs:
             }}
           NULLSUM: ${{ contains(inputs.nullsum, 'Нет') && 0 || 1 }}
           OWNSTRUCTURE: ${{ contains(inputs.ownstructure, 'Да') && 1 || 0 }}
+          REPORT: 'ConsultantTreeMLM'
         run: |
           echo "Значение NULLSUM: $NULLSUM, inputs.nullsum: >${{ inputs.nullsum }}<"
           echo "Значение OWNSTRUCTURE: $OWNSTRUCTURE, inputs.ownstructure: >${{ inputs.ownstructure }}<"
-          node mailing/script_load_ConsultantTreeMLM.js
+          node mailing/script_load_report_xml.js
           
       - name: Upload XML result to mailing folder
         run: |
