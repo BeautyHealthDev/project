@@ -55,6 +55,9 @@ jobs:
           xsltproc --stringparam fromDate "$YESTERDAY" \
                    --stringparam toDate "$YESTERDAY" \
                    mailing/contacts_new_${REPORT_TYPE}.xsl mailing/${REPORT_TYPE}.xml > contacts_new_with_dates.json
+          # Считаем элементы и выводим в консоль
+          COUNT=$(jq '. | length' contacts_new_with_dates.json)
+          echo "Количество элементов в файле: $COUNT"
           # Вывод результата в лог для проверки
           cat contacts_new_with_dates.json
 
