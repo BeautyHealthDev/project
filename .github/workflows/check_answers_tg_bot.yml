@@ -20,7 +20,7 @@ jobs:
           fi
 
       - name: Restart and Notify
-        if: steps.status.outputs.alive == 'true'
+        if: steps.status.outputs.alive == 'false'
         run: |
           # 1. Перезапуск на PythonAnywhere
           RESTART_RES=$(curl -s -X POST \
