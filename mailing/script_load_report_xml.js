@@ -1,14 +1,17 @@
 const { chromium } = require('playwright');
 const fs = require('fs');
+
 const loginPage = 'https://faberlic.com/ru/ru/login';
-// const nnumber = process.env.USER;
+const nnumber = process.env.USER;
 const period = process.env.PERIOD;
 const nullsum = process.env.NULLSUM;
 const ownstructure = process.env.OWNSTRUCTURE;
-// const hidezombnull = process.env.HIDEZOMBNULL;
-// const reportPage = `https://faberlic.com/rssreports/otchet.php?linkreport=/ReportServer/Pages/ReportViewer.aspx?%2fRP_distributor%2fReportMLM2MC&rs:Command=Render&rc:Stylesheet=htmlviewer&nnumber=${nnumber}&period=${period}&nullsum=${nullsum}&ownstructure=${ownstructure}&hidezombnull=${hidezombnull}&lang=RU`;
-const reportPage = `https://faberlic.com/rssreports/otchet.php?linkreport=/ReportServer/Pages/ReportViewer.aspx?%2fRPP%2fConsultantTreeMLM&rs:Command=Render&rc:Stylesheet=htmlviewer&cons=1001494180387&period=${period}&cur=445&ownstructure=${ownstructure}&withzero=${nullsum}&lang=RU`;
-console.log(`Сформирован URL отчета: ${reportPage}`);
+const report = process.env.REPORT;
+const reportMLM2MC = `https://faberlic.com/rssreports/otchet.php?linkreport=/ReportServer/Pages/ReportViewer.aspx?%2fRP_distributor%2fReportMLM2MC&rs:Command=Render&rc:Stylesheet=htmlviewer&nnumber=${nnumber}&period=${period}&nullsum=${nullsum}&ownstructure=${ownstructure}&hidezombnull=0&lang=RU`;
+const consultantTreeMLM = `https://faberlic.com/rssreports/otchet.php?linkreport=/ReportServer/Pages/ReportViewer.aspx?%2fRPP%2fConsultantTreeMLM&rs:Command=Render&rc:Stylesheet=htmlviewer&cons=1001494180387&period=${period}&cur=445&ownstructure=${ownstructure}&withzero=${nullsum}&lang=RU`;
+const reportPage = (report === 'ReportMLM2MC') ? reportMLM2MC : consultantTreeMLM2MC;
+
+console.log(`Сформирован URL ${report}-отчета: ${reportPage}`);
   
 (async () => {
   const browser = await chromium.launch();
@@ -57,7 +60,7 @@ console.log(`Сформирован URL отчета: ${reportPage}`);
   const download = await downloadPromise;
 
   // 4. Сохранение скачанного файла
-  const path = 'ConsultantTreeMLM.xml';
+  const path = '${report}.xml';
   await download.saveAs(path);
   
   console.log(`Файл успешно скачан и сохранен в: ${path}`);
