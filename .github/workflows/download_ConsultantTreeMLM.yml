@@ -106,6 +106,9 @@ jobs:
           # Format XML (Сразу после загрузки)
           npx prettier --write "mailing/$FILE" --plugin=@prettier/plugin-xml
 
+      - name: Pull latest changes
+        run: git pull --rebase origin main
+        
       - name: Commit Beautiful XML
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
