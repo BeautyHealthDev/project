@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "@prettier/plugin-xml": "^3.4.2",
+    "playwright": "^1.58.1",
+    "prettier": "^3.8.1"
+  }
+}
