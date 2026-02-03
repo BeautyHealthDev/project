@@ -67,6 +67,9 @@ jobs:
           NULLSUM: ${{ contains(inputs.nullsum, 'Нет') && 0 || 1 }}
           OWNSTRUCTURE: ${{ contains(inputs.ownstructure, 'Да') && 1 || 0 }}
           REPORT: 'ReportMLM2MC'
+          # Не используются в данном отчете
+          NAME: '' 
+          CONS: '' 
         run: |
           echo "Значение NULLSUM: $NULLSUM, inputs.nullsum: >${{ inputs.nullsum }}<"
           echo "Значение OWNSTRUCTURE: $OWNSTRUCTURE, inputs.ownstructure: >${{ inputs.ownstructure }}<"
