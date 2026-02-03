@@ -7,8 +7,10 @@ const period = process.env.PERIOD;
 const nullsum = process.env.NULLSUM;
 const ownstructure = process.env.OWNSTRUCTURE;
 const report = process.env.REPORT;
+const cons = process.env.CONS;
 const reportMLM2MC = `https://faberlic.com/rssreports/otchet.php?linkreport=/ReportServer/Pages/ReportViewer.aspx?%2fRP_distributor%2fReportMLM2MC&rs:Command=Render&rc:Stylesheet=htmlviewer&nnumber=${nnumber}&period=${period}&nullsum=${nullsum}&ownstructure=${ownstructure}&hidezombnull=0&lang=RU`;
-const consultantTreeMLM = `https://faberlic.com/rssreports/otchet.php?linkreport=/ReportServer/Pages/ReportViewer.aspx?%2fRPP%2fConsultantTreeMLM&rs:Command=Render&rc:Stylesheet=htmlviewer&cons=1001494180387&period=${period}&cur=445&ownstructure=${ownstructure}&withzero=${nullsum}&lang=RU`;
+const consultantTreeMLM = `https://faberlic.com/rssreports/otchet.php?linkreport=/ReportServer/Pages/ReportViewer.aspx?%2fRPP%2fConsultantTreeMLM&rs:Command=Render&rc:Stylesheet=htmlviewer&cons=${cons}&period=${period}&cur=445&ownstructure=${ownstructure}&withzero=${nullsum}&lang=RU`;
+
 const reportPage = (report === 'ReportMLM2MC') ? reportMLM2MC : consultantTreeMLM;
 
 console.log(`Сформирован URL ${report}-отчета: ${reportPage}`);
