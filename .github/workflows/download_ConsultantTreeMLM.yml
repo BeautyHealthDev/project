@@ -106,11 +106,19 @@ jobs:
           # Format XML (Сразу после загрузки)
           npx prettier --write "mailing/$FILE" --plugin=@prettier/plugin-xml
 
-      - name: Pull latest changes
-        run: git pull --rebase origin main
-        
-      - name: Commit Beautiful XML
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: "ConsultantTreeMLM: update and format report"
-          file_pattern: 'mailing/ConsultantTreeMLM${{ matrix.name }}.xml'
+      - name: Sync and Push
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          
+          # 1. Добавляем файлы в индекс
+          git add .
+          
+          # 2. Делаем временный коммит, чтобы pull --rebase сработал
+          git commit -m "Temp commit for ${{ matrix.name }}"
+          
+          # 3. Подтягиваем изменения извне и ставим наш коммит поверх них
+          git pull --rebase origin main
+          
+          # 4. Пушим итоговый результат
+          git push origin main
