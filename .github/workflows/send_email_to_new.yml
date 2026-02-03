@@ -31,10 +31,8 @@ jobs:
           # Проверяем наличие конкретных файлов
           if echo "$CHANGED_FILES" | grep -q "mailing/ReportMLM2MC.xml"; then
             echo "REPORT_TYPE=ReportMLM2MC" >> $GITHUB_ENV
-            echo "found=true" >> $GITHUB_OUTPUT
-          elif echo "$CHANGED_FILES" | grep -q "mailing/(ConsultantTreeMLM)[^ ]*\.xml"; then
+          elif echo "$CHANGED_FILES" | grep -q "mailing/ConsultantTreeMLM.*\.xml"; then
             echo "REPORT_TYPE=ConsultantTreeMLM" >> $GITHUB_ENV
-            echo "found=true" >> $GITHUB_OUTPUT
           fi
 
           # Ищем файл в списке измененных по маске
