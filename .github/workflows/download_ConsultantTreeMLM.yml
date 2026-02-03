@@ -102,9 +102,9 @@ jobs:
           # Создаем папку, если она не существует
           mkdir -p mailing
           # Перемещаем файл в целевую папку
-          mv $FILE mailing/
+          mv "$FILE" mailing/
           # Format XML (Сразу после загрузки)
-          run: npx prettier --write "mailing/$FILE" --plugin=@prettier/plugin-xml
+          npx prettier --write "mailing/$FILE" --plugin=@prettier/plugin-xml
 
       - name: Commit Beautiful XML
         uses: stefanzweifel/git-auto-commit-action@v5
