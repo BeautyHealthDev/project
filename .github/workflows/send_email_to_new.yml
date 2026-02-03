@@ -3,7 +3,7 @@ name: Send E-mails to new consultants
 on:
   push:
     paths:
-      - 'mailing/ConsultantTreeMLM.xml'
+      - 'mailing/ConsultantTreeMLM*.xml'
       - 'mailing/ReportMLM2MC.xml'
   workflow_dispatch:
 
@@ -11,7 +11,8 @@ jobs:
   build-contacts-list:
     runs-on: ubuntu-latest
     env:
-      REPORT_TYPE: 'none' # Инициализация, чтобы избежать ошибки доступа
+      REPORT_TYPE: 'none' 
+      REPORT_NAME: 'none' # Инициализация, чтобы избежать ошибки доступа
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -31,9 +32,24 @@ jobs:
           if echo "$CHANGED_FILES" | grep -q "mailing/ReportMLM2MC.xml"; then
             echo "REPORT_TYPE=ReportMLM2MC" >> $GITHUB_ENV
             echo "found=true" >> $GITHUB_OUTPUT
-          elif echo "$CHANGED_FILES" | grep -q "mailing/ConsultantTreeMLM.xml"; then
+          elif echo "$CHANGED_FILES" | grep -q "mailing/(ConsultantTreeMLM)[^ ]*\.xml"; then
             echo "REPORT_TYPE=ConsultantTreeMLM" >> $GITHUB_ENV
             echo "found=true" >> $GITHUB_OUTPUT
+          fi
+
+          # Ищем файл в списке измененных по маске
+          # Используем -o для вывода только совпадения и basename для очистки пути
+          MATCHED_FILE=$(echo "$CHANGED_FILES" | grep -oE "mailing/(ReportMLM2MC|ConsultantTreeMLM)[^ ]*\.xml" | head -n 1)
+
+          if [ -n "$MATCHED_FILE" ]; then
+            # Убираем путь "mailing/" и расширение ".xml"
+            FILENAME=$(basename "$MATCHED_FILE" .xml)  
+            echo "REPORT_NAME=$FILENAME" >> $GITHUB_ENV
+            echo "found=true" >> $GITHUB_OUTPUT
+            echo "Найдено: $FILENAME"
+          else
+            echo "found=false" >> $GITHUB_OUTPUT
+            echo "Файлы не найдены"
           fi
       - name: Install xsltproc
         run: |
@@ -43,7 +59,7 @@ jobs:
       - name: Use result
         if: steps.detector.outputs.found == 'true'
         run: |
-          echo "Работаем с отчетом: ${{ env.REPORT_TYPE }}"
+          echo "Работаем с отчетом: ${{ env.REPORT_NAME }}"
           
       - name: Transform XML to JSON
         run: |
@@ -54,7 +70,7 @@ jobs:
           # Запускаем трансформацию с параметрами
           xsltproc --stringparam fromDate "$YESTERDAY" \
                    --stringparam toDate "$YESTERDAY" \
-                   mailing/contacts_new_${REPORT_TYPE}.xsl mailing/${REPORT_TYPE}.xml > contacts_new_with_dates.json
+                   mailing/contacts_new_${REPORT_TYPE}.xsl mailing/${REPORT_NAME}.xml > contacts_new_with_dates.json
           # Считаем элементы и выводим в консоль
           COUNT=$(jq '. | length' contacts_new_with_dates.json)
           echo "Количество элементов в файле: $COUNT"
