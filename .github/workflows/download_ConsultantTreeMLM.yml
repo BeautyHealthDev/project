@@ -32,6 +32,23 @@ on:
 jobs:
   download-report:
     runs-on: ubuntu-latest
+    strategy:
+      # Чтобы ошибки в одном ID не прерывали остальные, поставьте false
+      fail-fast: false 
+      matrix:
+        include:
+          - name: "JULIA"
+            cons_id: "1001494180387"
+          - name: "ALEXANDER"
+            cons_id: "1001529788922"
+          - name: "KSENIA"
+            cons_id: "1001733594981"
+          - name: "VLAD"
+            cons_id: "1001746170633"
+          - name: "NB"
+            cons_id: "1001773422929"
+          - name: "NATASHA"
+            cons_id: "1001783608329"
     permissions:
       contents: write  # Разрешает пуш в репозиторий
     steps:
@@ -50,13 +67,16 @@ jobs:
         run: |
           npm install playwright
           npx playwright install chromium --with-deps
-
-      - name: Run Playwright script
+          
+      - name: Install Prettier
+        run: npm install prettier @prettier/plugin-xml
+    
+      - name: Run Playwright script for ${{ matrix.name }}
         env:
-          USER: ${{ secrets.FABERLIC_USER }}
-          PASS: ${{ secrets.FABERLIC_KEY }}
-          # Маппинг: описание -> строковой ID
-          # Для запуска по расписанию значение по-умолчанию 02/2026
+          # Если matrix.name = 'JULIA', возьмет секрет FABERLIC_USER_JULIA
+          USER: ${{ secrets[format('FABERLIC_USER_{0}', matrix.name)] }}
+          # Аналогично для пароля FABERLIC_KEY_JULIA
+          PASS: ${{ secrets[format('FABERLIC_KEY_{0}', matrix.name)] }}
           PERIOD: >-
             ${{ 
               inputs.period == '01/2026' && '30000000520' || 
@@ -65,29 +85,28 @@ jobs:
               '30000000521'
             }}
           NULLSUM: ${{ contains(inputs.nullsum, 'Нет') && '0' || '1' }}
-          OWNSTRUCTURE: ${{ contains(inputs.ownstructure, 'Да') && '1' || '0' }}
+          OWNSTRUCTURE: ${{ contains(inputs.ownstructure, 'Нет') && '0' || '1' }}
           REPORT: 'ConsultantTreeMLM'
+          # Берем значение из матрицы
+          CONS: ${{ matrix.cons_id }} 
         run: |
-          echo "Значение NULLSUM: $NULLSUM, inputs.nullsum: >${{ inputs.nullsum }}<"
-          echo "Значение OWNSTRUCTURE: $OWNSTRUCTURE, inputs.ownstructure: >${{ inputs.ownstructure }}<"
+          echo "Запуск для: ${{ matrix.name }} (ID: $CONS)"
           node mailing/script_load_report_xml.js
+
           
       - name: Upload XML result to mailing folder
+        env:
+          FILE: 'ConsultantTreeMLM$_{{ matrix.name }}.xml'
         run: |
           # Создаем папку, если она не существует
           mkdir -p mailing
-          
           # Перемещаем файл в целевую папку
-          mv ConsultantTreeMLM.xml mailing/
-          
-      - name: Install Prettier
-        run: npm install prettier @prettier/plugin-xml
-
-      - name: Format XML (Сразу после загрузки)
-        run: npx prettier --write "mailing/ConsultantTreeMLM.xml" --plugin=@prettier/plugin-xml
+          mv $FILE mailing/
+          # Format XML (Сразу после загрузки)
+          run: npx prettier --write "mailing/$FILE" --plugin=@prettier/plugin-xml
 
       - name: Commit Beautiful XML
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "ConsultantTreeMLM: update and format report"
-          file_pattern: 'mailing/ConsultantTreeMLM.xml'
+          file_pattern: 'mailing/ConsultantTreeMLM_${{ matrix.name }}.xml'
