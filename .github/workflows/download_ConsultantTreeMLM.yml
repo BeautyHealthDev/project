@@ -16,7 +16,7 @@ on:
             - 03/2026
         nullsum:
           description: 'Включить неактивных Консультантов'
-          default: 'Нет'
+          default: 'Да'
           type: choice
           options:
             - Да
@@ -96,7 +96,7 @@ jobs:
           
       - name: Upload XML result to mailing folder
         env:
-          FILE: 'ConsultantTreeMLM$_{{ matrix.name }}.xml'
+          FILE: 'ConsultantTreeMLM$_${{ matrix.name }}.xml'
         run: |
           # Создаем папку, если она не существует
           mkdir -p mailing
