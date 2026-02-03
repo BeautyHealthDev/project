@@ -115,7 +115,7 @@ jobs:
           git add .
           
           # 2. Делаем временный коммит, чтобы pull --rebase сработал
-          git commit -m "Temp commit for ${{ matrix.name }}"
+          git commit -m "Рассылка новичкам для аккаунта ${{ matrix.name }}"
           
           # 3. Подтягиваем изменения извне и ставим наш коммит поверх них
           git pull --rebase origin main
