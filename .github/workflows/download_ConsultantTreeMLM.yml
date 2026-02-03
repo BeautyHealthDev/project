@@ -88,6 +88,7 @@ jobs:
           OWNSTRUCTURE: ${{ contains(inputs.ownstructure, 'Нет') && '0' || '1' }}
           REPORT: 'ConsultantTreeMLM'
           # Берем значение из матрицы
+          NAME: ${{ matrix.name }} 
           CONS: ${{ matrix.cons_id }} 
         run: |
           echo "Запуск для: ${{ matrix.name }} (ID: $CONS)"
@@ -96,7 +97,7 @@ jobs:
           
       - name: Upload XML result to mailing folder
         env:
-          FILE: 'ConsultantTreeMLM$_${{ matrix.name }}.xml'
+          FILE: 'ConsultantTreeMLM${{ matrix.name }}.xml'
         run: |
           # Создаем папку, если она не существует
           mkdir -p mailing
@@ -109,4 +110,4 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "ConsultantTreeMLM: update and format report"
-          file_pattern: 'mailing/ConsultantTreeMLM_${{ matrix.name }}.xml'
+          file_pattern: 'mailing/ConsultantTreeMLM${{ matrix.name }}.xml'
