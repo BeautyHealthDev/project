@@ -7,6 +7,7 @@ const period = process.env.PERIOD;
 const nullsum = process.env.NULLSUM;
 const ownstructure = process.env.OWNSTRUCTURE;
 const report = process.env.REPORT;
+const name = process.env.NAME;
 const cons = process.env.CONS;
 const reportMLM2MC = `https://faberlic.com/rssreports/otchet.php?linkreport=/ReportServer/Pages/ReportViewer.aspx?%2fRP_distributor%2fReportMLM2MC&rs:Command=Render&rc:Stylesheet=htmlviewer&nnumber=${nnumber}&period=${period}&nullsum=${nullsum}&ownstructure=${ownstructure}&hidezombnull=0&lang=RU`;
 const consultantTreeMLM = `https://faberlic.com/rssreports/otchet.php?linkreport=/ReportServer/Pages/ReportViewer.aspx?%2fRPP%2fConsultantTreeMLM&rs:Command=Render&rc:Stylesheet=htmlviewer&cons=${cons}&period=${period}&cur=445&ownstructure=${ownstructure}&withzero=${nullsum}&lang=RU`;
@@ -62,7 +63,7 @@ console.log(`Сформирован URL ${report}-отчета: ${reportPage}`);
   const download = await downloadPromise;
 
   // 4. Сохранение скачанного файла
-  const path = `${report}.xml`;
+  const path = `${report}${name}.xml`;
   await download.saveAs(path);
   
   console.log(`Файл успешно скачан и сохранен в: ${path}`);
