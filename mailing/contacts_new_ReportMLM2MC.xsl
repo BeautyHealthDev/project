@@ -16,9 +16,12 @@
         translate(@DREGDATE, '-:T', '') &gt;= translate($fromDate, '-:T', '') and 
         translate(@DREGDATE, '-:T', '') &lt;= translate($toDate, '-:T', '')
     ]">
-      <xsl:variable name="full" select="normalize-space(@SCONS)"/>
-      <xsl:variable name="afterFirst" select="substring-after($full, ' ')"/>
-      <xsl:variable name="afterSecond" select="substring-after($afterFirst, ' ')"/>
+        <xsl:variable name="full" select="normalize-space(@SCONS)"/>
+        <xsl:variable name="afterFirst" select="substring-after($full, ' ')"/>
+        <xsl:variable name="afterSecond" select="substring-after($afterFirst, ' ')"/>
+        <xsl:variable name="parentId" select="string(@textbox14)" />
+        <xsl:variable name="tutor" select="//r:Detail[string(@textbox23) = $parentId]" />
+        
         {
           "name": "<xsl:value-of select="@SCONS"/>",
           "lastname": "<xsl:choose>
@@ -31,7 +34,10 @@
           </xsl:choose>",
           "patronymic": "<xsl:value-of select="$afterSecond"/>",
           "regdate": "<xsl:value-of select="translate(substring(@DREGDATE, 1, 10), '-', '.')"/>",
-          "email": "<xsl:value-of select="@SCONSEMAIL"/>"
+          "email": "<xsl:value-of select="@SCONSEMAIL"/>",
+          "tutor_name": "<xsl:value-of select="$tutor/@SCONS"/>",
+          "tutor_phone": "<xsl:value-of select="$tutor/@textbox19"/>",
+          "tutor_email": "<xsl:value-of select="$tutor/@SCONSEMAIL"/>"
         }<xsl:if test="position() != last()">,</xsl:if>
     </xsl:for-each>
 ]
