@@ -17,13 +17,18 @@
         translate(@DREGDATE, '-:T', '') &lt;= translate($toDate, '-:T', '') and
         @SBSENDMAIL = 'Да'
     ]">
+        <xsl:variable name="parentId" select="string(@NNUMBERPARENT)" />
+        <xsl:variable name="tutor" select="//r:Detail[string(@textbox18) = $parentId]" />
         {
           "name": "<xsl:value-of select="@textbox19"/>",
           "lastname": "<xsl:value-of select="@SLASTNAME"/>",
           "firstname": "<xsl:value-of select="@SFIRSTNAME"/>",
           "patronymic": "<xsl:value-of select="@SPATRONYMIC"/>",
           "regdate": "<xsl:value-of select="translate(substring(@DREGDATE, 1, 10), '-', '.')"/>",
-          "email": "<xsl:value-of select="@textbox109"/>"
+          "email": "<xsl:value-of select="@textbox109"/>",
+          "tutor_name": "<xsl:value-of select="$tutor/@textbox19"/>",
+          "tutor_phone": "<xsl:value-of select="$tutor/@textbox111"/>",
+          "tutor_email": "<xsl:value-of select="$tutor/@textbox109"/>"
         }<xsl:if test="position() != last()">,</xsl:if>
     </xsl:for-each>
 ]
