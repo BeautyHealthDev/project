@@ -16,16 +16,46 @@ on:
         required: true
         default: '2'
 
+  # Добавляем возможность вызова из других workflow
+  workflow_call:
+    inputs:
+      contacts_name:
+        type: string
+        required: true
+        default: 'mailing/contacts.json'
+      template_name:
+        type: string
+        required: true
+        default: 'mailing/template.txt'
+      delay_seconds:
+        type: string
+        required: true
+        default: '2'
+
 jobs:
   prepare:
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
+      - name: Download prepared contacts
+        uses: actions/download-artifact@v4
+        with:
+          name: new-contacts # Имя должно совпадать с тем, что было в Upload
+          
+      - name: Send Email
+        run: |
+          echo "Рассылка по контактам в файле: ${{ inputs.contacts_name }}"
+          # Считаем элементы и выводим в консоль
+          COUNT=$(jq '. | length' ${{ inputs.contacts_name }})
+          echo "Количество элементов в файле: $COUNT"
+          # Вывод результата в лог для проверки
+          cat "${{ inputs.contacts_name }}" 
+
       - uses: actions/checkout@v4
       - id: set-matrix
         run: |
-          JSON=$(jq -c '.' ${{ github.event.inputs.contacts_name }})
+          JSON=$(jq -c '.' ${{ inputs.contacts_name }})
           echo "matrix=${JSON}" >> $GITHUB_OUTPUT
 
   send-emails:
@@ -41,25 +71,35 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Anti-spam delay
-        run: sleep ${{ github.event.inputs.delay_seconds }}
+        run: sleep ${{ inputs.delay_seconds }}
 
       # Шаг для замены {name} на реальное имя из контактов
-      - name: Prepare Template
+      - name: Prepare Template for ${{ matrix.contact.name }}
         id: prepare_template
         run: |
           # Читаем файл, заменяем {name} на значение из матрицы и сохраняем во временный файл
           # Используем @ в качестве разделителя в sed на случай, если в имени есть слеши
-          sed "s/{name}/${{ matrix.contact.name }}/g" ${{ github.event.inputs.template_name }} > prepared_email.txt
+          sed \
+              -e "s|%ФИО%|${{ matrix.contact.name }}|g" \
+              -e "s|%ФАМИЛИЯ%|${{ matrix.contact.lastname }}|g" \
+              -e "s|%ИМЯ%|${{ matrix.contact.firstname }}|g" \
+              -e "s|%ОТЧЕСТВО%|${{ matrix.contact.patronymic }}|g" \
+              -e "s|%EMAIL%|${{ matrix.contact.email }}|g" \
+              -e "s|%НАСТАВНИК_ФИО%|${{ matrix.contact.tutor_name }}|g" \
+              -e "s|%НАСТАВНИК_ТЕЛЕФОН%|${{ matrix.contact.tutor_phone }}|g" \
+              -e "s|%НАСТАВНИК_EMAIL%|${{ matrix.contact.tutor_email }}|g" \
+              ${{ inputs.template_name }} > prepared_email.txt
+          cat "prepared_email.txt" 
 
-      - name: Send mail to ${{ matrix.contact.email }}
-        uses: dawidd6/action-send-mail@v3
-        with:
-          server_address: smtp.gmail.com
-          server_port: 465
-          username: ${{ secrets.MAIL_USERNAME }}
-          password: ${{ secrets.MAIL_PASSWORD }}
-          subject: "Здравствуйте, ${{ matrix.contact.name }}!"
-          to: ${{ matrix.contact.email }}
-          from: "Your Team <${{ secrets.MAIL_USERNAME }}>"
-          # Отправляем уже подготовленный временный файл
-          body: file://prepared_email.txt
+      # - name: Send mail to ${{ matrix.contact.email }}
+      #   uses: dawidd6/action-send-mail@v3
+      #   with:
+      #     server_address: smtp.gmail.com
+      #     server_port: 465
+      #     username: ${{ secrets.MAIL_USERNAME }}
+      #     password: ${{ secrets.MAIL_PASSWORD }}
+      #     subject: "Добро пожаловать в Команду, ${{ matrix.contact.firstname }}!"
+      #     to: ${{ matrix.contact.email }}
+      #     from: "Команда Фаберлик <${{ secrets.MAIL_USERNAME }}>"
+      #     # Отправляем уже подготовленный временный файл
+      #     body: file://prepared_email.txt
