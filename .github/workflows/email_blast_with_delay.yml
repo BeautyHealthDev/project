@@ -72,8 +72,8 @@ jobs:
           # Вывод результата в лог для проверки
           cat "${{ steps.select_file.outputs.path }}" 
 
-      - uses: actions/checkout@v4
-      - id: set-matrix
+      - name: Set Matrix
+        id: set-matrix
         run: |
           JSON=$(jq -c '.' ${{ steps.select_file.outputs.path }})
           echo "matrix=${JSON}" >> $GITHUB_OUTPUT
