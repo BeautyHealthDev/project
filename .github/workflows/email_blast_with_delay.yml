@@ -116,15 +116,15 @@ jobs:
               ${{ inputs.template_name }} > prepared_email.txt
           cat "prepared_email.txt" 
 
-      # - name: Send mail to ${{ matrix.contact.email }}
-      #   uses: dawidd6/action-send-mail@v3
-      #   with:
-      #     server_address: smtp.gmail.com
-      #     server_port: 465
-      #     username: ${{ secrets.MAIL_USERNAME }}
-      #     password: ${{ secrets.MAIL_PASSWORD }}
-      #     subject: "Добро пожаловать в Команду, ${{ matrix.contact.firstname }}!"
-      #     to: ${{ matrix.contact.email }}
-      #     from: "Команда Фаберлик <${{ secrets.MAIL_USERNAME }}>"
-      #     # Отправляем уже подготовленный временный файл
-      #     body: file://prepared_email.txt
+      - name: Send mail to ${{ matrix.contact.email }}
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          subject: "Добро пожаловать в Команду, ${{ matrix.contact.firstname }}!"
+          to: ${{ matrix.contact.email }}
+          from: "Команда проекта Фаберлик <${{ secrets.MAIL_USERNAME }}>"
+          # Отправляем уже подготовленный временный файл
+          body: file://prepared_email.txt
