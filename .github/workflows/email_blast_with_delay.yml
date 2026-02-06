@@ -40,22 +40,39 @@ jobs:
     steps:
       - name: Download prepared contacts
         uses: actions/download-artifact@v4
+        continue-on-error: true # Не падать, если артефакта нет
         with:
           name: new-contacts # Имя должно совпадать с тем, что было в Upload
           
+      - name: Verify and Select Contacts File
+        id: select_file
+        run: |
+          # 1. Проверяем, пришел ли файл из артефакта
+          if [ -f "contacts_new_with_dates.json" ]; then
+            echo "source=artifact" >> $GITHUB_OUTPUT
+            echo "path=contacts_new_with_dates.json" >> $GITHUB_OUTPUT
+          # 2. Иначе проверяем, существует ли файл по пути из inputs в репозитории
+          elif [ -f "${{ inputs.contacts_name }}" ]; then
+            echo "source=repository" >> $GITHUB_OUTPUT
+            echo "path=${{ inputs.contacts_name }}" >> $GITHUB_OUTPUT
+          else
+            echo "Error: Contacts file not found!"
+            exit 1
+          fi
+          
       - name: Send Email
         run: |
-          echo "Рассылка по контактам в файле: ${{ inputs.contacts_name }}"
+          echo "Рассылка по контактам в файле: ${{ steps.select_file.outputs.path }}"
           # Считаем элементы и выводим в консоль
-          COUNT=$(jq '. | length' ${{ inputs.contacts_name }})
+          COUNT=$(jq '. | length' ${{ steps.select_file.outputs.path }})
           echo "Количество элементов в файле: $COUNT"
           # Вывод результата в лог для проверки
-          cat "${{ inputs.contacts_name }}" 
+          cat "${{ steps.select_file.outputs.path }}" 
 
       - uses: actions/checkout@v4
       - id: set-matrix
         run: |
-          JSON=$(jq -c '.' ${{ inputs.contacts_name }})
+          JSON=$(jq -c '.' ${{ steps.select_file.outputs.path }})
           echo "matrix=${JSON}" >> $GITHUB_OUTPUT
 
   send-emails:
