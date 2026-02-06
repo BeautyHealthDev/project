@@ -104,10 +104,11 @@ jobs:
         run: |
           # Очищаем номер (только цифры)
           CLEAN_PHONE=$(echo "${{ matrix.contact.phone }}" | sed 's/[^0-9]//g')
+          echo "Очищаем номер (только цифры): ${CLEAN_PHONE}"
           # Формируем итоговую ссылку
-          WA_URL="https://wa.me$CLEAN_PHONE"
-          TG_URL="https://t.me/+$CLEAN_PHONE"
-          MAILTO_URL="mailto:${{ matrix.contact.email }}"
+          WA_URL="https://wa.me${CLEAN_PHONE}"
+          TG_URL="https://t.me/+${CLEAN_PHONE}"
+          MAILTO_URL="mailto:${{ matrix.contact.tutor_email }}"
 
           # Читаем файл, заменяем {name} на значение из матрицы и сохраняем во временный файл
           # Используем @ в качестве разделителя в sed на случай, если в имени есть слеши
@@ -116,10 +117,10 @@ jobs:
               -e "s|%ФАМИЛИЯ%|${{ matrix.contact.lastname }}|g" \
               -e "s|%ИМЯ%|${{ matrix.contact.firstname }}|g" \
               -e "s|%ОТЧЕСТВО%|${{ matrix.contact.patronymic }}|g" \
-              -e "s|%EMAIL%|${MAILTO_URL}|g" \
+              -e "s|%EMAIL%|${{ matrix.contact.email }}|g" \
               -e "s|%НАСТАВНИК_ФИО%|${{ matrix.contact.tutor_name }}|g" \
               -e "s|%НАСТАВНИК_ТЕЛЕФОН%|${{ matrix.contact.tutor_phone }}|g" \
-              -e "s|%НАСТАВНИК_EMAIL%|${{ matrix.contact.tutor_email }}|g" \
+              -e "s|%НАСТАВНИК_EMAIL%|${MAILTO_URL}|g" \
               -e "s|%НАСТАВНИК_WA%|${WA_URL}|g" \
               -e "s|%НАСТАВНИК_TG%|${TG_URL}|g" \
               ${{ inputs.template_name }} > prepared_email.txt
