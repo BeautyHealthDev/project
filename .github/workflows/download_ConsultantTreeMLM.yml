@@ -23,7 +23,7 @@ on:
             - Нет
         ownstructure:
           description: 'Показывать только свою структуру'
-          default: 'Да'
+          default: 'Нет'
           type: choice
           options:
             - Да
@@ -37,18 +37,18 @@ jobs:
       fail-fast: false # Чтобы ошибки в одном ID не прерывали остальные
       matrix:
         include:
-          - name: "JULIA"
+          - name: "_JULIA"
             cons_id: "1001494180387"
-          - name: "ALEXANDER"
-            cons_id: "1001529788922"
-          - name: "KSENIA"
-            cons_id: "1001733594981"
-          - name: "VLAD"
-            cons_id: "1001746170633"
-          - name: "NB"
-            cons_id: "1001773422929"
-          - name: "NATASHA"
-            cons_id: "1001783608329"
+    #       - name: "_ALEXANDER"
+    #         cons_id: "1001529788922"
+    #       - name: "_KSENIA"
+    #         cons_id: "1001733594981"
+    #       - name: "_VLAD"
+    #         cons_id: "1001746170633"
+    #       - name: "_NB"
+    #         cons_id: "1001773422929"
+    #       - name: "_NATASHA"
+    #         cons_id: "1001783608329"
     permissions:
       contents: write  # Разрешает пуш в репозиторий
     steps:
@@ -73,10 +73,10 @@ jobs:
     
       - name: Run Playwright script for ${{ matrix.name }}
         env:
-          # Если matrix.name = 'JULIA', возьмет секрет FABERLIC_USER_JULIA
-          USER: ${{ secrets[format('FABERLIC_USER_{0}', matrix.name)] }}
+          # Если matrix.name = '_JULIA', возьмет секрет FABERLIC_USER_JULIA
+          USER: ${{ secrets[format('FABERLIC_USER{0}', matrix.name)] }}
           # Аналогично для пароля FABERLIC_KEY_JULIA
-          PASS: ${{ secrets[format('FABERLIC_KEY_{0}', matrix.name)] }}
+          PASS: ${{ secrets[format('FABERLIC_KEY{0}', matrix.name)] }}
           PERIOD: >-
             ${{ 
               inputs.period == '01/2026' && '30000000520' || 
@@ -85,13 +85,14 @@ jobs:
               '30000000521'
             }}
           NULLSUM: ${{ contains(inputs.nullsum, 'Нет') && '0' || '1' }}
-          OWNSTRUCTURE: ${{ contains(inputs.ownstructure, 'Нет') && '0' || '1' }}
+          OWNSTRUCTURE: ${{ contains(inputs.ownstructure, 'Да') && '1' || '0' }}
           REPORT: 'ConsultantTreeMLM'
-          # Берем значение из матрицы
-          NAME: ${{ matrix.name }} 
+          # Берем значение из матрицы - в варианте запуска по группам отдельно
+          # Используем Юлин аккаунт без имени для запуска по одному аккаунту с вложенными группами
+          NAME: ${{ matrix.name }}
           CONS: ${{ matrix.cons_id }} 
         run: |
-          echo "Запуск для: ${{ matrix.name }} (ID: $CONS)"
+          echo "Запуск для: $NAME (ID: $CONS)"
           node mailing/script_load_report_xml.js
 
           
