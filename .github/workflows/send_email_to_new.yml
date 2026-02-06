@@ -10,6 +10,10 @@ on:
 jobs:
   build-contacts-list:
     runs-on: ubuntu-latest
+    outputs:
+      # Прокидываем output шага на уровень всей джобы
+      should_send: ${{ steps.detector.outputs.need_send_mail }}
+      file_name: "contacts_new_with_dates.json" # Передаем имя файла
     env:
       REPORT_TYPE: 'none' 
       REPORT_NAME: 'none' # Инициализация, чтобы избежать ошибки доступа
@@ -31,8 +35,10 @@ jobs:
           # Проверяем наличие конкретных файлов
           if echo "$CHANGED_FILES" | grep -q "mailing/ReportMLM2MC.xml"; then
             echo "REPORT_TYPE=ReportMLM2MC" >> $GITHUB_ENV
+            echo "need_send_mail=false" >> $GITHUB_OUTPUT
           elif echo "$CHANGED_FILES" | grep -q "mailing/ConsultantTreeMLM.*\.xml"; then
             echo "REPORT_TYPE=ConsultantTreeMLM" >> $GITHUB_ENV
+            echo "need_send_mail=true" >> $GITHUB_OUTPUT
           fi
 
           # Ищем файл в списке измененных по маске
@@ -80,3 +86,17 @@ jobs:
         with:
           name: new-contacts
           path: contacts_new_with_dates.json
+
+  # 2. Вторая джоба: запуск рассылки по условию
+  send-emails:
+    needs: build-contacts-list
+    # Условие: запускать только если в первой джобе вернули 'true'
+    if: needs.build-contacts-list.outputs.should_send == 'true'
+    uses: ./.github/workflows/email_blast_with_delay.yml
+    with:
+      # Используем имя файла, которое передали из первой джобы
+      contacts_name: ${{ needs.build-contacts-list.outputs.file_name }}
+      template_name: 'mailing/new.txt'
+      delay_seconds: '5'
+    secrets: inherit
+
