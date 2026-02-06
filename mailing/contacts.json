@@ -1,10 +1,24 @@
 [
   {
+    "name": ""Мокрушин Саша",
+    "lastname": "Мокрушин",
+    "firstname": "Саша",
+    "patronymic": "",
+    "regdate": "2026.02.05",
     "email": "alex_mokrushin@mail.ru",
-    "name": "Саша Мокрушин"
+    "tutor_name": "Мокрушина Юлия Николаевна",
+    "tutor_phone": "+7 9951127580",
+    "tutor_email": "alexm_bigfoot@mail.ru"
   },
   {
+    "name": ""Мокрушин Александр Михайлович",
+    "lastname": "Мокрушин",
+    "firstname": "Александр",
+    "patronymic": "Михайлович",
+    "regdate": "2026.02.05",
     "email": "alex.mokrushin@gmail.com",
-    "name": "Alexander Mokrushin"
+    "tutor_name": "Мокрушина Юлия Николаевна",
+    "tutor_phone": "+7 9951127580",
+    "tutor_email": "alexm_bigfoot@mail.ru"
   }
 ]
