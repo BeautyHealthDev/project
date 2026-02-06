@@ -102,6 +102,16 @@ jobs:
       - name: Prepare Template for ${{ matrix.contact.name }}
         id: prepare_template
         run: |
+          # 1. Очищаем номер (только цифры)
+          CLEAN_PHONE=$(echo "${{ matrix.contact.phone }}" | sed 's/[^0-9]//g')
+          # 2. Готовим текст приветствия
+          MESSAGE="Здравствуйте! Я по поводу Фаберлик"
+          # 3. Кодируем текст для URL (превращаем пробелы в %20 и т.д.) через jq
+          ENCODED_MSG=$(jq -nr --arg str "$MESSAGE" '$str | @uri')
+          # 4. Формируем итоговую ссылку
+          WA_URL="https://wa.me{CLEAN_PHONE}?text=${ENCODED_MSG}"
+          TG_URL="https://t.me/+{CLEAN_PHONE}?text=${ENCODED_MSG}"
+
           # Читаем файл, заменяем {name} на значение из матрицы и сохраняем во временный файл
           # Используем @ в качестве разделителя в sed на случай, если в имени есть слеши
           sed \
@@ -113,6 +123,8 @@ jobs:
               -e "s|%НАСТАВНИК_ФИО%|${{ matrix.contact.tutor_name }}|g" \
               -e "s|%НАСТАВНИК_ТЕЛЕФОН%|${{ matrix.contact.tutor_phone }}|g" \
               -e "s|%НАСТАВНИК_EMAIL%|${{ matrix.contact.tutor_email }}|g" \
+              -e "s|%НАСТАВНИК_WA%|${WA_URL}|g" \
+              -e "s|%НАСТАВНИК_TG%|${TG_URL}|g" \
               ${{ inputs.template_name }} > prepared_email.txt
           cat "prepared_email.txt" 
 
