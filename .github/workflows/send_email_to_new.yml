@@ -97,6 +97,6 @@ jobs:
       # Используем имя файла, которое передали из первой джобы
       contacts_name: ${{ needs.build-contacts-list.outputs.file_name }}
       template_name: 'mailing/new.txt'
-      delay_seconds: '5'
+      delay_seconds: '3'
     secrets: inherit
 
