@@ -50,22 +50,22 @@ jobs:
       - name: Verify and Select Contacts File
         id: select_file
         run: |
-          # # 1. Проверяем, пришел ли файл из артефакта
-          # if [ -f "contacts_new_with_dates.json" ]; then
-          #   echo "source=artifact" >> $GITHUB_OUTPUT
-          #   echo "path=contacts_new_with_dates.json" >> $GITHUB_OUTPUT
-          # # 2. Иначе проверяем, существует ли файл по пути из inputs в репозитории
-          # elif [ -f "${{ inputs.contacts_name }}" ]; then
-          #   echo "source=repository" >> $GITHUB_OUTPUT
-          #   echo "path=${{ inputs.contacts_name }}" >> $GITHUB_OUTPUT
-          # else
-          #   echo "Error: Contacts file not found!"
-          #   exit 1
-          # fi
+          # 1. Проверяем, пришел ли файл из артефакта
+          if [ -f "contacts_new_with_dates.json" ]; then
+            echo "source=artifact" >> $GITHUB_OUTPUT
+            echo "path=contacts_new_with_dates.json" >> $GITHUB_OUTPUT
+          # 2. Иначе проверяем, существует ли файл по пути из inputs в репозитории
+          elif [ -f "${{ inputs.contacts_name }}" ]; then
+            echo "source=repository" >> $GITHUB_OUTPUT
+            echo "path=${{ inputs.contacts_name }}" >> $GITHUB_OUTPUT
+          else
+            echo "Error: Contacts file not found!"
+            exit 1
+          fi
 
-          # Для отладки подменяем файл
-          echo "source=repository" >> $GITHUB_OUTPUT
-          echo "path=mailing/contacts.json" >> $GITHUB_OUTPUT
+          # # Для отладки подменяем файл
+          # echo "source=repository" >> $GITHUB_OUTPUT
+          # echo "path=mailing/contacts.json" >> $GITHUB_OUTPUT
           
           
       - name: Send Email
