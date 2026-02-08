@@ -76,11 +76,39 @@ jobs:
           echo "Количество элементов в файле: $COUNT"
           # Вывод результата в лог для проверки
           cat "${{ steps.select_file.outputs.path }}" 
+          
+      - name: Fix, Validate and Log Deleted Contacts
+        id: prepare_json
+        run: |
+          # 1. Исправляем опечатки и отсекаем хвосты (sed)
+          sed -E -e 's|(@[a-zA-Z0-9.-]+\.com)[^"]*|\1|g' \
+                 -e 's|(@[a-zA-Z0-9.-]+\.ru)[^"]*|\1|g' \
+                 -e 's|(@[a-zA-Z0-9.-]+\.net)[^"]*|\1|g' \
+                 -e 's|@gmayil\.com|@gmail.com|g' \
+                 -e 's|@gamil\.com|@gmail.com|g' \
+                 -e 's|@andex\.ru|@yandex.ru|g' \
+                 ${{ steps.select_file.outputs.path }} > fixed_contacts.json
+
+          # 2. Логируем удаленные (битые) адреса
+          # Находим разницу между всеми контактами и валидными
+          echo "=== СПИСОК УДАЛЕННЫХ (НЕКОРРЕКТНЫХ) АДРЕСОВ ==="
+          jq -r '.[] | select(.email == null or (.email | test("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$") | not)) | "Удален: \(.email) (\(.name) \(.lastname))"' fixed_contacts.json || echo "Битых адресов не найдено."
+          echo "==============================================="
+
+          # 3. Валидация через jq: оставляем только корректные
+          jq -c '[.[] | select(.email != null and (.email | test("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$")))]' fixed_contacts.json > validated_contacts.json
+          
+          # 4. Сохраняем в output для матрицы
+          JSON=$(cat validated_contacts.json)
+          echo "matrix=${JSON}" >> $GITHUB_OUTPUT
+
+          # Итоговая статистика
+          echo "Успешно валидировано: $(jq '. | length' validated_contacts.json) контактов."
 
       - name: Set Matrix
         id: set-matrix
         run: |
-          JSON=$(jq -c '.' ${{ steps.select_file.outputs.path }})
+          JSON=$(jq -c '.' validated_contacts.json)
           echo "matrix=${JSON}" >> $GITHUB_OUTPUT
 
   send-emails:
