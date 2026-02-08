@@ -45,7 +45,7 @@ jobs:
         uses: actions/download-artifact@v4
         continue-on-error: true # Не падать, если артефакта нет
         with:
-          name: new-contacts # Имя должно совпадать с тем, что было в Upload
+          name: mail-contacts # Имя должно совпадать с тем, что было в Upload
           
       - name: Verify and Select Contacts File
         id: select_file
@@ -54,6 +54,9 @@ jobs:
           if [ -f "contacts_new_with_dates.json" ]; then
             echo "source=artifact" >> $GITHUB_OUTPUT
             echo "path=contacts_new_with_dates.json" >> $GITHUB_OUTPUT
+          elif [ -f "contacts_remove.json" ]; then
+            echo "source=artifact" >> $GITHUB_OUTPUT
+            echo "path=contacts_remove.json" >> $GITHUB_OUTPUT
           # 2. Иначе проверяем, существует ли файл по пути из inputs в репозитории
           elif [ -f "${{ inputs.contacts_name }}" ]; then
             echo "source=repository" >> $GITHUB_OUTPUT
