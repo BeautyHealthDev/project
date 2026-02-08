@@ -14,6 +14,8 @@ jobs:
       REPORT: 'ReportMLM2MC'
       # Берем значение из текущей итерации матрицы
       IDLE_PERIODS: ${{ matrix.idle }}
+    permissions:
+      contents: write  # Разрешает пуш в репозиторий
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
