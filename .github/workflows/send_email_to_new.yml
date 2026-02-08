@@ -84,7 +84,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: new-contacts
+          name: mail-contacts
           path: contacts_new_with_dates.json
 
   # 2. Вторая джоба: запуск рассылки по условию
