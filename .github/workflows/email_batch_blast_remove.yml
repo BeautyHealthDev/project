@@ -85,6 +85,9 @@ jobs:
         contact: ${{ fromJson(needs.prepare-slice.outputs.matrix) }}
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
       - name: Check for Critical Error Threshold
         id: breaker
         run: |
