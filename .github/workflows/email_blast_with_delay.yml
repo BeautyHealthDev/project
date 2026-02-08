@@ -89,13 +89,16 @@ jobs:
                  -e 's|(@[a-zA-Z0-9.-]+\.net)[^"]*|\1|g' \
                  -e 's|@gmayil\.com|@gmail.com|g' \
                  -e 's|@gamil\.com|@gmail.com|g' \
+                 -e 's|@gmail\.c|@gmail.com|g' \
+                 -e 's|@gmail\.co|@gmail.com|g' \
+                 -e 's|@mailr\.u|@mail.ru|g' \
                  -e 's|@andex\.ru|@yandex.ru|g' \
                  ${{ steps.select_file.outputs.path }} > fixed_contacts.json
 
           # 2. Логируем удаленные (битые) адреса
           # Находим разницу между всеми контактами и валидными
           echo "=== СПИСОК УДАЛЕННЫХ (НЕКОРРЕКТНЫХ) АДРЕСОВ ==="
-          jq -r '.[] | select(.email == null or (.email | test("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$") | not)) | "Удален адрес: \(.email), имя: (\(.name)"' fixed_contacts.json || echo "Битых или пустых адресов не найдено."
+          jq -r '.[] | select(.email == null or (.email | test("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$") | not)) | "Удален адрес: \(.email), имя: \(.name)"' fixed_contacts.json || echo "Битых или пустых адресов не найдено."
           echo "==============================================="
 
           # 3. Валидация через jq: оставляем только корректные
