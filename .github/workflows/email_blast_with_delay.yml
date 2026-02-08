@@ -133,6 +133,9 @@ jobs:
       - name: Prepare Template for ${{ matrix.contact.name }}
         id: prepare_template
         run: |
+          # ДАТА_ОКОНЧАНИЯ_КАТАЛОГА
+          CAT_END = "15 февраля 2026"
+          
           # Очищаем номер (только цифры)
           CLEAN_PHONE=$(echo "${{ matrix.contact.tutor_phone }}" | sed 's/[^0-9]//g')
           echo "Очищаем номер (только цифры): ${CLEAN_PHONE}"
@@ -154,8 +157,27 @@ jobs:
               -e "s|%НАСТАВНИК_EMAIL%|${{ matrix.contact.tutor_email }}|g" \
               -e "s|%НАСТАВНИК_WA%|${WA_URL}|g" \
               -e "s|%НАСТАВНИК_TG%|${TG_URL}|g" \
+              -e "s|%ДАТА_ОКОНЧАНИЯ_КАТАЛОГА%|${CAT_END}|g" \
               ${{ inputs.template_name }} > prepared_email.txt
           cat "prepared_email.txt" 
+          
+      - name: Set dynamic subject
+        run: |
+          case "${{ inputs.template_name }}" in
+            "mailing/new.txt")
+              echo "MAIL_SUBJECT=Добро пожаловать в Команду, ${{ matrix.contact.firstname }}!" >> $GITHUB_ENV
+              ;;
+            "mailing/remove6.txt")
+              echo "MAIL_SUBJECT=Ваш аккаунт в Faberlic скоро будет удален, ${{ matrix.contact.firstname }}!" >> $GITHUB_ENV
+              ;;
+            "mailing/remove18.txt")
+              echo "MAIL_SUBJECT=Ваш аккаунт в Faberlic скоро будет удален, ${{ matrix.contact.firstname }}!" >> $GITHUB_ENV
+              ;;
+            *)
+              # Заголовок по умолчанию
+              echo "MAIL_SUBJECT=Новое сообщение от Faberlic, ${{ matrix.contact.firstname }}!" >> $GITHUB_ENV
+              ;;
+          esac
 
       # - name: Send mail to ${{ matrix.contact.email }}
       #   uses: dawidd6/action-send-mail@v3
@@ -164,7 +186,7 @@ jobs:
       #     server_port: 465
       #     username: ${{ secrets.MAIL_USERNAME }}
       #     password: ${{ secrets.MAIL_PASSWORD }}
-      #     subject: "Добро пожаловать в Команду, ${{ matrix.contact.firstname }}!"
+      #     subject: ${{ env.MAIL_SUBJECT }}
       #     to: ${{ matrix.contact.email }}
       #     from: "Команда проекта Фаберлик <${{ secrets.MAIL_USERNAME }}>"
       #     # Отправляем уже подготовленный временный файл
