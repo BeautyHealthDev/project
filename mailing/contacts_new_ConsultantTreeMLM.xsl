@@ -20,6 +20,7 @@
         <xsl:variable name="parentId" select="string(@NNUMBERPARENT)" />
         <xsl:variable name="tutor" select="//r:Detail[string(@textbox18) = $parentId]" />
         {
+          "cons_number": "<xsl:value-of select="@textbox18"/>",
           "name": "<xsl:value-of select="@textbox19"/>",
           "lastname": "<xsl:value-of select="@SLASTNAME"/>",
           "firstname": "<xsl:value-of select="@SFIRSTNAME"/>",
