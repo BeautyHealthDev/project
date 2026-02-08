@@ -144,6 +144,7 @@ jobs:
               -e "s|%ФАМИЛИЯ%|${{ matrix.contact.lastname }}|g" \
               -e "s|%ИМЯ%|${{ matrix.contact.firstname }}|g" \
               -e "s|%ОТЧЕСТВО%|${{ matrix.contact.patronymic }}|g" \
+              -e "s|%НОМЕР_КОНСУЛЬТАНТА%|${{ matrix.contact.cons_number }}|g" \
               -e "s|%EMAIL%|${{ matrix.contact.email }}|g" \
               -e "s|%НАСТАВНИК_ФИО%|${{ matrix.contact.tutor_name }}|g" \
               -e "s|%НАСТАВНИК_ТЕЛЕФОН%|${{ matrix.contact.tutor_phone }}|g" \
