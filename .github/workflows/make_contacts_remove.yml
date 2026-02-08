@@ -43,6 +43,8 @@ jobs:
           sed -E -e 's|(@[a-zA-Z0-9.-]+\.com)[^"]*|\1|g' \
                  -e 's|(@[a-zA-Z0-9.-]+\.ru)[^"]*|\1|g' \
                  -e 's|(@[a-zA-Z0-9.-]+\.net)[^"]*|\1|g' \
+                 -e 's|@gemail\.com|@gmail.com|g' \
+                 -e 's|@gmail\.cmooom|@gmail.com|g' \
                  -e 's|@gmail\.commom|@gmail.com|g' \
                  -e 's|@gmail\.commmooom|@gmail.com|g' \
                  -e 's|@gmayil\.com|@gmail.com|g' \
