@@ -23,6 +23,7 @@
         <xsl:variable name="tutor" select="//r:Detail[string(@textbox23) = $parentId]" />
         
         {
+          "cons_number": "<xsl:value-of select="@textbox23"/>",
           "name": "<xsl:value-of select="@SCONS"/>",
           "lastname": "<xsl:choose>
               <xsl:when test="contains($full, ' ')"><xsl:value-of select="substring-before($full, ' ')"/></xsl:when>
