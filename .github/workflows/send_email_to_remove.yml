@@ -6,11 +6,10 @@ on:
         report:
           description: 'Использовать отчет'
           required: true
-          default: 'ReportMLM2MC.xml'
+          default: 'ReportMLM2MC'
           type: choice
           options:
             - ReportMLM2MC
-            - ConsultantTreeMLM
         idle_periods:
           description: 'Периоды неактивности'
           required: true
@@ -57,7 +56,7 @@ jobs:
       - name: Transform XML to JSON
         run: |
           # Запускаем трансформацию
-          xsltproc contacts_remove{{inputs.idle_periods}}_${REPORT_TYPE}.xsl mailing/${REPORT_NAME}.xml > contacts_remove.json
+          xsltproc contacts_remove${{inputs.idle_periods}}_${REPORT_TYPE}.xsl mailing/${REPORT_NAME}.xml > contacts_remove.json
           # Считаем элементы и выводим в консоль
           COUNT=$(jq '. | length' contacts_remove.json)
           echo "Количество элементов в файле: $COUNT"
@@ -79,6 +78,6 @@ jobs:
     with:
       # Используем имя файла, которое передали из первой джобы
       contacts_name: ${{ needs.build-contacts-list.outputs.file_name }}
-      template_name: 'mailing/remove{{inputs.idle_periods}}.txt'
+      template_name: 'mailing/remove${{inputs.idle_periods}}.txt'
       delay_seconds: '3'
     secrets: inherit
