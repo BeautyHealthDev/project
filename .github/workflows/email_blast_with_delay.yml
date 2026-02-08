@@ -95,7 +95,7 @@ jobs:
           # 2. Логируем удаленные (битые) адреса
           # Находим разницу между всеми контактами и валидными
           echo "=== СПИСОК УДАЛЕННЫХ (НЕКОРРЕКТНЫХ) АДРЕСОВ ==="
-          jq -r '.[] | select(.email == null or (.email | test("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$") | not)) | "Удален: \(.email) (\(.name) \(.lastname))"' fixed_contacts.json || echo "Битых адресов не найдено."
+          jq -r '.[] | select(.email == null or (.email | test("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$") | not)) | "Удален адрес: '\(.email)', имя: (\(.name)"' fixed_contacts.json || echo "Битых или пустых адресов не найдено."
           echo "==============================================="
 
           # 3. Валидация через jq: оставляем только корректные
@@ -134,7 +134,7 @@ jobs:
         id: prepare_template
         run: |
           # ДАТА_ОКОНЧАНИЯ_КАТАЛОГА
-          CAT_END = "15 февраля 2026"
+          CAT_END="15 февраля 2026"
           
           # Очищаем номер (только цифры)
           CLEAN_PHONE=$(echo "${{ matrix.contact.tutor_phone }}" | sed 's/[^0-9]//g')
@@ -168,14 +168,14 @@ jobs:
               echo "MAIL_SUBJECT=Добро пожаловать в Команду, ${{ matrix.contact.firstname }}!" >> $GITHUB_ENV
               ;;
             "mailing/remove6.txt")
-              echo "MAIL_SUBJECT=Ваш аккаунт в Faberlic скоро будет удален, ${{ matrix.contact.firstname }}!" >> $GITHUB_ENV
+              echo "MAIL_SUBJECT=Ваш аккаунт в Faberlic скоро будет удален" >> $GITHUB_ENV
               ;;
             "mailing/remove18.txt")
-              echo "MAIL_SUBJECT=Ваш аккаунт в Faberlic скоро будет удален, ${{ matrix.contact.firstname }}!" >> $GITHUB_ENV
+              echo "MAIL_SUBJECT=Ваш аккаунт в Faberlic скоро будет удален" >> $GITHUB_ENV
               ;;
             *)
               # Заголовок по умолчанию
-              echo "MAIL_SUBJECT=Новое сообщение от Faberlic, ${{ matrix.contact.firstname }}!" >> $GITHUB_ENV
+              echo "MAIL_SUBJECT=Новое сообщение от Команды Faberlic" >> $GITHUB_ENV
               ;;
           esac
 
