@@ -40,7 +40,7 @@ jobs:
         run: |
             echo "REPORT_TYPE=${{inputs.report}}" >> $GITHUB_ENV
             echo "need_send_mail=true" >> $GITHUB_OUTPUT
-            echo "REPORT_NAME='mailing/${{inputs.report}}'" >> $GITHUB_ENV
+            echo "REPORT_NAME=${{inputs.report}}" >> $GITHUB_ENV
             echo "found=true" >> $GITHUB_OUTPUT
             echo "Используем: $FILENAME"
       - name: Install xsltproc
@@ -56,7 +56,7 @@ jobs:
       - name: Transform XML to JSON
         run: |
           # Запускаем трансформацию
-          xsltproc contacts_remove${{inputs.idle_periods}}_${REPORT_TYPE}.xsl mailing/${REPORT_NAME}.xml > contacts_remove.json
+          xsltproc mailing/contacts_remove${{inputs.idle_periods}}_${REPORT_TYPE}.xsl mailing/${REPORT_NAME}.xml > contacts_remove.json
           # Считаем элементы и выводим в консоль
           COUNT=$(jq '. | length' contacts_remove.json)
           echo "Количество элементов в файле: $COUNT"
