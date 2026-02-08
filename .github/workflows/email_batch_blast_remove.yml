@@ -65,7 +65,9 @@ jobs:
           LIMIT=200
           
           # Фильтрация + Слайсинг
-          JSON=$(jq -c "[.[] | select(.email != null and (.email | test(\"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\\\.[a-zA-Z]{2,}$\")))] | .[$OFFSET:$OFFSET+$LIMIT]" mailing/contacts_remove${IDLE_PERIODS}.json)
+          # JSON=$(jq -c "[.[] | select(.email != null and (.email | test(\"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\\\.[a-zA-Z]{2,}$\")))] | .[$OFFSET:$OFFSET+$LIMIT]" mailing/contacts_remove${IDLE_PERIODS}.json)
+          JSON=$(jq -c "[.[] | select(.email != null and (.email | test(\"^[a-zA-Z0-9._%+-]+@gmail\\.com$\")))] | .[$OFFSET:$OFFSET+$LIMIT]" mailing/contacts_remove${IDLE_PERIODS}.json)
+
           
           if [ "$JSON" == "[]" ] || [ -z "$JSON" ]; then
             echo "Контакты для дня ${{ steps.calc.outputs.day_diff }} не найдены."
