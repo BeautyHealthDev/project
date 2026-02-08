@@ -1,0 +1,85 @@
+name: Prepare E-mail contacts for 6 and 18 periods inactive consultants
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-contacts-list:
+    runs-on: ubuntu-latest
+    strategy:
+      # Указываем список значений для перебора
+      matrix:
+        idle: ['6', '18']
+    env:
+      REPORT: 'ReportMLM2MC'
+      # Берем значение из текущей итерации матрицы
+      IDLE_PERIODS: ${{ matrix.idle }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xsltproc jq
+
+      - name: Transform XML to JSON
+        run: |
+          echo "Запуск трансформации для IDLE_PERIODS: $IDLE_PERIODS"
+          # Используем переменную окружения в путях файлов
+          xsltproc mailing/contacts_remove${IDLE_PERIODS}_${REPORT}.xsl mailing/${REPORT}.xml > contacts_remove.json
+          
+          COUNT=$(jq '. | length' contacts_remove.json)
+          echo "Найдено контактов ($IDLE_PERIODS периодов): $COUNT"
+
+      - name: Fix, Validate and Log Deleted Contacts
+        id: prepare_json
+        run: |
+          # 1. Исправляем опечатки и отсекаем хвосты (sed)
+          sed -E -e 's|(@[a-zA-Z0-9.-]+\.com)[^"]*|\1|g' \
+                 -e 's|(@[a-zA-Z0-9.-]+\.ru)[^"]*|\1|g' \
+                 -e 's|(@[a-zA-Z0-9.-]+\.net)[^"]*|\1|g' \
+                 -e 's|@gmail\.commom|@gmail.com|g' \
+                 -e 's|@gmail\.commmooom|@gmail.com|g' \
+                 -e 's|@gmayil\.com|@gmail.com|g' \
+                 -e 's|@gamil\.com|@gmail.com|g' \
+                 -e 's|@mailr\.u|@mail.ru|g' \
+                 -e 's|@andex\.ru|@yandex.ru|g' \
+                 contacts_remove.json > fixed_contacts.json
+
+          # 2. Логируем удаленные (битые) адреса
+          # Находим разницу между всеми контактами и валидными
+          echo "=== СПИСОК УДАЛЕННЫХ (НЕКОРРЕКТНЫХ) АДРЕСОВ ==="
+          jq -r '.[] | select(.email == null or (.email | test("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$") | not)) | "Удален адрес: \(.email), имя: \(.name)"' fixed_contacts.json || echo "Битых или пустых адресов не найдено."
+          echo "==============================================="
+
+          # 3. Валидация через jq: оставляем только корректные
+          jq -c '[.[] | select(.email != null and (.email | test("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$")))]' fixed_contacts.json > validated_contacts.json
+
+          # Итоговая статистика
+          echo "Успешно валидировано: $(jq '. | length' validated_contacts.json) контактов."
+          
+      - name: Commit and Push to mailing directory
+        run: |
+          # 1. Настройка данных бота GitHub
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # 2. Перемещаем файл в целевой каталог
+          mkdir -p mailing
+          mv validated_contacts.json mailing/contacts_remove${{ matrix.idle }}.json
+          
+          # 3. Добавляем файл, фиксируем изменения и отправляем
+          git add mailing/contacts_remove${{ matrix.idle }}.json
+          
+          # Проверяем, есть ли реальные изменения, чтобы не падать на пустом коммите
+          if git diff --staged --quiet; then
+            echo "Изменений в файле для ${{ matrix.idle }} не обнаружено."
+          else
+            git commit -m "Update mailing contacts for IDLE_PERIODS: ${{ matrix.idle }}"
+            # Используем --rebase, чтобы параллельные запуски матрицы не конфликтовали
+            git pull --rebase origin main
+            git push origin main
+          fi
