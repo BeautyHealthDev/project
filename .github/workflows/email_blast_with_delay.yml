@@ -120,6 +120,8 @@ jobs:
   send-emails:
     needs: prepare
     runs-on: ubuntu-latest
+    env:
+      MAIL_SUBJECT: 'Письмо от Команды Faberlic' 
     strategy:
       max-parallel: 1 
       matrix:
@@ -182,15 +184,15 @@ jobs:
               ;;
           esac
 
-      # - name: Send mail to ${{ matrix.contact.email }}
-      #   uses: dawidd6/action-send-mail@v3
-      #   with:
-      #     server_address: smtp.gmail.com
-      #     server_port: 465
-      #     username: ${{ secrets.MAIL_USERNAME }}
-      #     password: ${{ secrets.MAIL_PASSWORD }}
-      #     subject: ${{ env.MAIL_SUBJECT }}
-      #     to: ${{ matrix.contact.email }}
-      #     from: "Команда проекта Фаберлик <${{ secrets.MAIL_USERNAME }}>"
-      #     # Отправляем уже подготовленный временный файл
-      #     body: file://prepared_email.txt
+      - name: Send mail to ${{ matrix.contact.email }}
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          subject: ${{ env.MAIL_SUBJECT }}
+          to: ${{ matrix.contact.email }}
+          from: "Команда проекта Faberlic <${{ secrets.MAIL_USERNAME }}>"
+          # Отправляем уже подготовленный временный файл
+          body: file://prepared_email.txt
