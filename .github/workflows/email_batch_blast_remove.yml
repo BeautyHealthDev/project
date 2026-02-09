@@ -2,7 +2,7 @@ name: 14-Day Sequential Blast to Removed 6 or 18
 
 on:
   schedule:
-    - cron: '35 9 * * *' # Каждый день в 13:00 МСК
+    - cron: '0 7 * * *' # Каждый день в 10:00 МСК
   workflow_dispatch:
     inputs:
       force_offset_day:
@@ -52,7 +52,7 @@ jobs:
           fi
 
           echo "day_diff=$DAY_DIFF" >> $GITHUB_OUTPUT
-          echo "offset=$(( DAY_DIFF * 300 ))" >> $GITHUB_OUTPUT
+          echo "offset=$(( DAY_DIFF * 256 ))" >> $GITHUB_OUTPUT
 
       - name: Slice Contacts
         id: set-matrix
@@ -60,9 +60,9 @@ jobs:
           # Если inputs.idle_periods существует и не пуст, берем его. Иначе '6'
           IDLE_PERIODS: ${{ inputs.idle_periods || '6' }}
         run: |
-          # Исправляем ошибки и берем срез 300 контактов
+          # Исправляем ошибки и берем срез 256 контактов
           OFFSET=${{ steps.calc.outputs.offset }}
-          LIMIT=300
+          LIMIT=256
           
           # Фильтрация + Слайсинг
           JSON=$(jq -c "[.[] | select(.email != null and (.email | test(\"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\\\.[a-zA-Z]{2,}$\")))] | .[$OFFSET:$OFFSET+$LIMIT]" mailing/contacts_remove${IDLE_PERIODS}.json)
