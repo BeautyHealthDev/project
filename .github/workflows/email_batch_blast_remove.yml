@@ -77,7 +77,9 @@ jobs:
   send-emails:
     needs: prepare-slice
     env:
-      MAILING_STOPPED: false
+      MAILING_STOPPED: true
+    outputs:
+      success_count: '0'
     strategy:
       fail-fast: false 
       max-parallel: 1
@@ -142,6 +144,7 @@ jobs:
         run: |
           # Путь к локальному счетчику ошибок
           ERR_FILE="consecutive_errors.txt"
+          SUCCESS_FILE="success_count.txt"
           
           if [ "${{ steps.send_mail.outcome }}" == "failure" ]; then
             # Увеличиваем счетчик ошибок
@@ -149,7 +152,7 @@ jobs:
             COUNT=$((COUNT + 1))
             echo $COUNT > $ERR_FILE
             echo "❌ Ошибка отправки. Подряд: $COUNT"
-            
+
             if [ "$COUNT" -ge 5 ]; then
               echo "!!! КРИТИЧЕСКОЕ КОЛИЧЕСТВО ОШИБОК !!!"
               touch STOP_MAILING
@@ -163,6 +166,11 @@ jobs:
           else
             # Сбрасываем счетчик при успешной отправке
             echo 0 > $ERR_FILE
+            SUCCESS_COUNT=$(cat $SUCCESS_FILE 2>/dev/null || echo 0)
+            SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
+            echo $SUCCESS_COUNT > $SUCCESS_FILE
+            echo "📊 Счетчик корректно отправленных: $SUCCESS_COUNT"
+            echo "success_count=$SUCCESS_COUNT" >> $GITHUB_OUTPUT
           fi
 
       - name: Upload Error Status
@@ -213,6 +221,7 @@ jobs:
           message: |
             📅 День рассылки: ${{ needs.prepare-slice.outputs.current_day }} из 14
             📊 Статус: ${{ needs.send-emails.result }}
+            ✏️ Отправлено без ошибок: ${{ needs.send-emails.outputs.success_count }}
             
             ⚠️ Список ошибок (первые 20):
             ${{ steps.err_list.outputs.list }}
