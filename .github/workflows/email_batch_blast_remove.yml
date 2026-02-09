@@ -32,7 +32,7 @@ jobs:
       - name: Calculate Current Day from Start
         id: calc
         run: |
-          # 1. Берем дату старта из секрета или ставим дефолт
+          # 1. Берем дату старта из env
           START_DATE="${{ env.MAILING_START_DATE }}"
           
           # 2. Считаем разницу в днях между СЕГОДНЯ и START_DATE
@@ -77,7 +77,7 @@ jobs:
   send-emails:
     needs: prepare-slice
     env:
-      MAILING_STOPPED: true
+      MAILING_STOPPED: false
     strategy:
       fail-fast: false 
       max-parallel: 1
@@ -150,7 +150,7 @@ jobs:
             echo $COUNT > $ERR_FILE
             echo "❌ Ошибка отправки. Подряд: $COUNT"
             
-            if [ "$COUNT" -ge 10 ]; then
+            if [ "$COUNT" -ge 5 ]; then
               echo "!!! КРИТИЧЕСКОЕ КОЛИЧЕСТВО ОШИБОК !!!"
               touch STOP_MAILING
               # В реальной матрице GitHub для передачи между итерациями 
