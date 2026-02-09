@@ -21,7 +21,7 @@ jobs:
   prepare-slice:
     runs-on: ubuntu-latest
     env:
-      MAILING_START_DATE: '2026-02-09'
+      MAILING_START_DATE: '2026-02-07'
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
       current_day: ${{ steps.calc.outputs.day_diff }}
@@ -52,7 +52,7 @@ jobs:
           fi
 
           echo "day_diff=$DAY_DIFF" >> $GITHUB_OUTPUT
-          echo "offset=$(( DAY_DIFF * 256 ))" >> $GITHUB_OUTPUT
+          echo "offset=$(( DAY_DIFF * 128 ))" >> $GITHUB_OUTPUT
 
       - name: Slice Contacts
         id: set-matrix
@@ -60,9 +60,9 @@ jobs:
           # Если inputs.idle_periods существует и не пуст, берем его. Иначе '6'
           IDLE_PERIODS: ${{ inputs.idle_periods || '6' }}
         run: |
-          # Исправляем ошибки и берем срез 256 контактов
+          # Исправляем ошибки и берем срез 128 контактов
           OFFSET=${{ steps.calc.outputs.offset }}
-          LIMIT=256
+          LIMIT=128
           
           # Фильтрация + Слайсинг
           JSON=$(jq -c "[.[] | select(.email != null and (.email | test(\"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\\\.[a-zA-Z]{2,}$\")))] | .[$OFFSET:$OFFSET+$LIMIT]" mailing/contacts_remove${IDLE_PERIODS}.json)
@@ -78,8 +78,6 @@ jobs:
     needs: prepare-slice
     env:
       MAILING_STOPPED: false
-    outputs:
-      success_count: '0'
     strategy:
       fail-fast: false 
       max-parallel: 1
@@ -144,7 +142,6 @@ jobs:
         run: |
           # Путь к локальному счетчику ошибок
           ERR_FILE="consecutive_errors.txt"
-          SUCCESS_FILE="success_count.txt"
           
           if [ "${{ steps.send_mail.outcome }}" == "failure" ]; then
             # Увеличиваем счетчик ошибок
@@ -166,13 +163,18 @@ jobs:
           else
             # Сбрасываем счетчик при успешной отправке
             echo 0 > $ERR_FILE
-            SUCCESS_COUNT=$(cat $SUCCESS_FILE 2>/dev/null || echo 0)
-            SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
-            echo $SUCCESS_COUNT > $SUCCESS_FILE
-            echo "📊 Счетчик корректно отправленных: $SUCCESS_COUNT"
-            echo "success_count=$SUCCESS_COUNT" >> $GITHUB_OUTPUT
+            # Просто создаем пустой файл с уникальным именем в случае успеха
+            touch "success_${{ strategy.job-index }}"
           fi
 
+      - name: Upload Success Marker
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: success-marker-${{ strategy.job-index }}
+          path: success_*
+          retention-days: 1
+      
       - name: Upload Error Status
         if: always()
         uses: actions/upload-artifact@v4
@@ -192,6 +194,34 @@ jobs:
     needs: [prepare-slice, send-emails]
     if: always()
     steps:
+      - name: Download Success Markers
+        uses: actions/download-artifact@v4
+        with:
+          path: all-success
+          pattern: success-marker-*
+          merge-multiple: true
+        continue-on-error: true
+
+      - name: Calculate Total Success
+        id: total
+        run: |
+          if [ -d "all-success" ]; then
+            # Считаем количество файлов маркеров
+            COUNT=$(ls all-success/success_* 2>/dev/null | wc -l)
+            echo "total_success=$COUNT" >> $GITHUB_OUTPUT
+          else
+            echo "total_success=0" >> $GITHUB_OUTPUT
+          fi
+
+        # Удаление артефактов сразу после подсчета
+      - name: Clean up success markers
+        uses: geekyeggo/delete-artifact@v5
+        with:
+          # Удаляем все артефакты, подходящие под маску
+          name: success-marker-*
+          use_glob: true
+          fail_on_missing: false
+      
       - name: Download all error logs
         uses: actions/download-artifact@v4
         with:
@@ -221,9 +251,9 @@ jobs:
           message: |
             📅 День рассылки: ${{ needs.prepare-slice.outputs.current_day }} из 14
             📊 Статус: ${{ needs.send-emails.result }}
-            ✏️ Отправлено без ошибок: ${{ needs.send-emails.outputs.success_count }}
+            ✅ Успешно отправлено: ${{ steps.total.outputs.total_success }}
             
-            ⚠️ Список ошибок (первые 20):
+            ⚠️ Список ошибок (первые 5):
             ${{ steps.err_list.outputs.list }}
             
             🔗 Полные логи: https://github.com{{ github.repository }}/actions/runs/${{ github.run_id }}
