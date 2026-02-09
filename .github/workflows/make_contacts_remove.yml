@@ -60,8 +60,7 @@ jobs:
           echo "==============================================="
 
           # 3. Валидация через jq: оставляем только корректные
-          # jq -c '[.[] | select(.email != null and (.email | test("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$")))]' fixed_contacts.json > validated_contacts.json
-          jq -c '[.[] | select(.email != null and (.email | test("^[a-zA-Z0-9._%+-]+@gmail\\.com$")))]' fixed_contacts.json > validated_contacts.json
+          jq -c '[.[] | select(.email != null and (.email | test("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$")))]' fixed_contacts.json > validated_contacts.json
 
           # Итоговая статистика
           echo "Успешно валидировано: $(jq '. | length' validated_contacts.json) контактов."
