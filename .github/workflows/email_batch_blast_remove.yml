@@ -52,7 +52,7 @@ jobs:
           fi
 
           echo "day_diff=$DAY_DIFF" >> $GITHUB_OUTPUT
-          echo "offset=$(( DAY_DIFF * 128 ))" >> $GITHUB_OUTPUT
+          echo "offset=$(( DAY_DIFF * 135 ))" >> $GITHUB_OUTPUT
 
       - name: Slice Contacts
         id: set-matrix
@@ -60,9 +60,9 @@ jobs:
           # Если inputs.idle_periods существует и не пуст, берем его. Иначе '6'
           IDLE_PERIODS: ${{ inputs.idle_periods || '6' }}
         run: |
-          # Исправляем ошибки и берем срез 128 контактов
+          # Исправляем ошибки и берем срез 135 контактов
           OFFSET=${{ steps.calc.outputs.offset }}
-          LIMIT=128
+          LIMIT=135
           
           # Фильтрация + Слайсинг
           JSON=$(jq -c "[.[] | select(.email != null and (.email | test(\"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\\\.[a-zA-Z]{2,}$\")))] | .[$OFFSET:$OFFSET+$LIMIT]" mailing/contacts_remove${IDLE_PERIODS}.json)
@@ -129,11 +129,11 @@ jobs:
         with:
           server_address: smtp.gmail.com
           server_port: 465
-          username: ${{ secrets.MAIL_USERNAME2 }}
-          password: ${{ secrets.MAIL_PASSWORD2 }}
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
           subject: "Ваш аккаунт в Faberlic скоро будет удален"
           to: ${{ matrix.contact.email }}
-          from: "Команда проекта Faberlic <${{ secrets.MAIL_USERNAME2 }}>"
+          from: "Команда проекта Faberlic <${{ secrets.MAIL_USERNAME }}>"
           # Отправляем уже подготовленный временный файл
           body: file://prepared_email.txt
 
