@@ -1,0 +1,49 @@
+name: OCR and Commit Result
+
+on:
+  push:
+    paths:
+      - 'ocr/*.jpg'
+      - 'ocr/*.png'
+  workflow_dispatch:
+
+jobs:
+  ocr-process:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Разрешение на запись в репозиторий
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install System Libs
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgl1 libglib2.0-0
+
+      - name: Install Dependencies
+        run: |
+          pip install torch torchvision --index-url https://download.pytorch.org
+          pip install opencv-python pillow pydantic layoutparser
+          pip install 'git+https://github.com/konstantinkozhin/manuscript-ocr'
+
+      - name: Run OCR for all new images
+        run: |
+          for file in ocr/*.{jpg,png}; do
+            [ -e "$file" ] || continue
+            python ocr/script.py "$file"
+          done
+
+      - name: Commit and Push changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add ocr/*.txt
+          # Коммитим только если есть изменения
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Add OCR results" && git push)
