@@ -30,7 +30,7 @@ def run_ocr():
         # text = pipeline.get_text(result)
         page = result["page"]
         # Organize into structured reading order
-        organized_page = organize_page(page, max_splits=50, use_columns=True)
+        organized_page = organize_page(page, max_splits=10, use_columns=True)
         text = pipeline.get_text(organized_page)
     except AttributeError:
         # Если упало с 'dict' object has no attribute 'blocks', 
