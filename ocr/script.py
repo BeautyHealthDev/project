@@ -13,8 +13,18 @@ def run_ocr():
     
     # Инициализация и обработка
     pipeline = Pipeline()
-    result = pipeline.predict(img_path)
-    text = pipeline.get_text(result)
+    # ИСПРАВЛЕНИЕ: добавляем return_layout=True или явно работаем с результатом
+    # В этой библиотеке predict возвращает кортеж или объект в зависимости от версии
+    try:
+        # Попробуем стандартный вызов
+        result = pipeline.predict(img_path)
+        text = pipeline.get_text(result)
+    except AttributeError:
+        # Если упало с 'dict' object has no attribute 'blocks', 
+        # значит нужно достать текст напрямую из результата (словаря)
+        result = pipeline.predict(img_path)
+        # В некоторых версиях результат — это dict, где текст уже есть
+        text = str(result) 
     
     # Сохраняем результат в .txt рядом с картинкой
     output_path = os.path.splitext(img_path)[0] + ".txt"
