@@ -29,7 +29,9 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          pip install torch torchvision --index-url https://download.pytorch.org
+          pip install --upgrade pip
+          # pip install torch torchvision --index-url https://download.pytorch.org
+          pip install torch torchvision --extra-index-url https://download.pytorch.org/whl/cpu
           pip install opencv-python pillow pydantic layoutparser
           pip install 'git+https://github.com/konstantinkozhin/manuscript-ocr'
 
