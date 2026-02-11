@@ -3,8 +3,8 @@ name: OCR and Commit Result
 on:
   push:
     paths:
-      - 'ocr/*.jpg'
-      - 'ocr/*.png'
+      - 'ocr/**/*.jpg'
+      - 'ocr/**/*.png'
   workflow_dispatch:
 
 jobs:
@@ -37,9 +37,20 @@ jobs:
 
       - name: Run OCR for all new images
         run: |
-          for file in ocr/*.{jpg,png}; do
-            [ -e "$file" ] || continue
-            python ocr/script.py "$file"
+          # for file in ocr/*.{jpg,png}; do
+          #   [ -e "$file" ] || continue
+          #   python ocr/script.py "$file"
+          # done
+          
+          # Ищем файлы, исключая те, что заканчиваются на _ocr.*
+          find ocr -type f \( -name "*.jpg" -o -name "*.png" \) ! -name "*_ocr.*" | while read file; do
+            # Проверяем, существует ли уже .txt, чтобы не тратить ресурсы
+          # if [ ! -f "${file%.*}.txt" ]; then
+              echo "Processing: $file"
+              python script.py "$file"
+          # else
+          #   echo "Skipping (txt exists): $file"
+          # fi
           done
 
       - name: Commit and Push changes
