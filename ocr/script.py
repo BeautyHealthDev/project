@@ -26,11 +26,11 @@ def run_ocr():
     # В этой библиотеке predict возвращает кортеж или объект в зависимости от версии
     try:
         # Попробуем стандартный вызов
-        result = pipeline.predict(img_path, sort_reading_order=False)
+        result = pipeline.predict(img_path)
         # text = pipeline.get_text(result)
-        page = result["page"]
+        organized_page = result["page"]
         # Organize into structured reading order
-        organized_page = organize_page(page, max_splits=10, use_columns=True)
+        # organized_page = organize_page(page, max_splits=10, use_columns=True)
         text = pipeline.get_text(organized_page)
     except AttributeError:
         # Если упало с 'dict' object has no attribute 'blocks', 
