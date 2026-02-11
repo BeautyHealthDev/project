@@ -49,7 +49,11 @@ def run_ocr():
     # Визуализация результата
     vis_img = visualize_page(img_path, result["page"])
     # vis_img.show()  
-    vis_img.save(os.path.splitext(img_path)[0] + "_ocr.jpg")
+    img_output_path = os.path.splitext(img_path)[0] + "_ocr.jpg"
+    print("Изображение OCR:")
+    print(vis_img)
+    vis_img.save(img_output_path)
+    print(f"Создан img_output_path: {img_output_path}")
 
 if __name__ == "__main__":
     run_ocr()
