@@ -2,6 +2,7 @@ import sys
 import os
 from manuscript import Pipeline
 from manuscript.utils.visualization import visualize_page
+from manuscript.utils import organize_page
 from manuscript.detectors import EAST
 from manuscript.recognizers import TRBA
 
