@@ -27,7 +27,10 @@ def run_ocr():
         # Попробуем стандартный вызов
         result = pipeline.predict(img_path)
         # text = pipeline.get_text(result)
-        text = pipeline.get_text(result["page"])
+        page = result["page"]
+        # Organize into structured reading order
+        organized_page = organize_page(page, max_splits=50, use_columns=True)
+        text = pipeline.get_text(organized_page)
     except AttributeError:
         # Если упало с 'dict' object has no attribute 'blocks', 
         # значит нужно достать текст напрямую из результата (словаря)
@@ -47,7 +50,7 @@ def run_ocr():
     print(f"Done: {output_path}")
     
     # Визуализация результата
-    vis_img = visualize_page(img_path, result["page"], show_order=True, show_lines=True, show_numbers=True)
+    vis_img = visualize_page(img_path, organized_page, show_order=True, show_lines=True, show_numbers=True)
     # vis_img.show()  
     img_output_path = os.path.splitext(img_path)[0] + "_ocr.jpg"
     print("Изображение OCR:")
