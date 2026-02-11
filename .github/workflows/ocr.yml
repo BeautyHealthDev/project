@@ -3,7 +3,7 @@ name: OCR and Commit Result
 on:
   push:
     paths:
-      - 'ocr/*.jpg'
+      - 'ocr/*.JPG'
       - 'ocr/*.png'
   workflow_dispatch:
 
@@ -43,7 +43,7 @@ jobs:
           # done
           
           # Ищем файлы, исключая те, что заканчиваются на _ocr.*
-          find ocr -type f \( -name "*.jpg" -o -name "*.png" \) ! -name "*_ocr.*" | while read file; do
+          find ocr -type f \( -name "*.JPG" -o -name "*.png" \) ! -name "*_ocr.*" | while read file; do
             # Проверяем, существует ли уже .txt, чтобы не тратить ресурсы
           # if [ ! -f "${file%.*}.txt" ]; then
               echo "Processing: $file"
@@ -58,6 +58,6 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add ocr/*.txt
-          git add ocr/*_ocr.jpg
+          git add ocr/*_ocr.JPG
           # Коммитим только если есть изменения
           git diff --quiet && git diff --staged --quiet || (git commit -m "Add OCR results" && git push)
