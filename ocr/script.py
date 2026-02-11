@@ -47,9 +47,9 @@ def run_ocr():
     print(f"Done: {output_path}")
     
     # Визуализация результата
-    vis_img = visualize_page(image_path, result["page"])
-    vis_img.show()  
-    # vis_img.save(os.path.splitext(img_path)[0] + "result.jpg") для сохранения
+    vis_img = visualize_page(img_path, result["page"])
+    # vis_img.show()  
+    vis_img.save(os.path.splitext(img_path)[0] + "_ocr.jpg")
 
 if __name__ == "__main__":
     run_ocr()
