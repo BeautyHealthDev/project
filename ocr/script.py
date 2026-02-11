@@ -26,7 +26,7 @@ def run_ocr():
     # В этой библиотеке predict возвращает кортеж или объект в зависимости от версии
     try:
         # Попробуем стандартный вызов
-        result = pipeline.predict(img_path)
+        result = pipeline.predict(img_path, sort_reading_order=False)
         # text = pipeline.get_text(result)
         page = result["page"]
         # Organize into structured reading order
