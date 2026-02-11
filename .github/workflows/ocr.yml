@@ -47,7 +47,7 @@ jobs:
             # Проверяем, существует ли уже .txt, чтобы не тратить ресурсы
           # if [ ! -f "${file%.*}.txt" ]; then
               echo "Processing: $file"
-              python script.py "$file"
+              python ocr/script.py "$file"
           # else
           #   echo "Skipping (txt exists): $file"
           # fi
