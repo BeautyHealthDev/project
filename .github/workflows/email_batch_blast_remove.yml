@@ -68,19 +68,6 @@ jobs:
           # Если inputs.idle_periods существует и не пуст, берем его. Иначе '6'
           IDLE_PERIODS: ${{ inputs.idle_periods || '6' }}
         run: |
-          # # Исправляем ошибки и берем срез 150 контактов
-          # OFFSET=${{ steps.calc.outputs.offset }}
-          # LIMIT=150
-          
-          # # Фильтрация + Слайсинг
-          # JSON=$(jq -c "[.[] | select(.email != null and (.email | test(\"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\\\.[a-zA-Z]{2,}$\")))] | .[$OFFSET:$OFFSET+$LIMIT]" mailing/contacts_remove${IDLE_PERIODS}.json)
-          
-          # if [ "$JSON" == "[]" ] || [ -z "$JSON" ]; then
-          #   echo "Контакты для дня ${{ steps.calc.outputs.day_diff }} не найдены."
-          #   exit 0
-          # fi
-          # echo "matrix=${JSON}" >> $GITHUB_OUTPUT
-          
           # 1. Базовые параметры
           OFFSET=${{ steps.calc.outputs.offset }}
           LIMIT=150
@@ -127,16 +114,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        
-      - name: Check for Critical Error Threshold
-        id: breaker
-        run: |
-          # Проверяем, существует ли файл-метка остановки (созданный в другой итерации)
-          if [ -f "STOP_MAILING" ]; then
-            echo "MAILING_STOPPED=true" >> $GITHUB_ENV
-            echo "🚨 Рассылка остановлена из-за превышения лимита ошибок!"
-            exit 1 # Прерываем текущую итерацию
-          fi
       
       - name: Prepare Template for ${{ matrix.contact.name }}
         env:
@@ -164,7 +141,8 @@ jobs:
       - name: Send Mail
         if: env.MAILING_STOPPED != 'true'
         id: send_mail
-        continue-on-error: true
+        # УБИРАЕМ continue-on-error: true
+        # Теперь при ошибке 550 5.4.5 этот шаг ПРЕРВЕТ джобу
         uses: dawidd6/action-send-mail@v3
         with:
           server_address: smtp.gmail.com
@@ -178,64 +156,17 @@ jobs:
           # Отправляем уже подготовленный временный файл
           body: file://prepared_email.txt
 
-      - name: Process Result
-        if: always()
-        run: |
-          if [[ "${{ steps.send_mail.outcome }}" == "success" ]]; then
-            touch "success_${{ strategy.job-index }}"
-          else
-            echo "❌ Ошибка отправки на ${{ matrix.contact.email }}" >> error_emails.txt
-            
-            # ПРОВЕРКА НА ЛИМИТ (550 5.4.5)
-            # Если вы видите в логах "550 5.4.5", GitHub зафиксирует failure.
-            # Чтобы отличить "битый email" от "лимита", можно использовать проверку:
-            
-            echo "Анализ причины сбоя для ${{ matrix.contact.email }}..."
-            
-            # Эмуляция проверки текста ошибки (если доступен в steps.send_mail.outputs.error)
-            ERROR_TEXT="${{ steps.send_mail.outputs.error }}"
-            
-            if [[ "$ERROR_TEXT" == *"550 5.4.5"* ]] || [[ "$ERROR_TEXT" == *"limit"* ]]; then
-               echo "🚨 КРИТИЧЕСКАЯ ОШИБКА: Суточный лимит Gmail исчерпан (550 5.4.5)."
-               echo "Останавливаем всю рассылку на сегодня..."
-               exit 1 # Это убивает текущую итерацию и ВСЮ матрицу (из-за fail-fast: true)
-            fi
-            
-            # Если это просто ошибка адреса (например, 550 5.1.1 User unknown), 
-            # мы НЕ делаем exit 1, чтобы рассылка шла дальше к следующему контакту.
-            # Для этого шагу выше (Send Mail) нужно добавить continue-on-error: true, 
-            # а здесь управлять логикой.
-          fi
-          
-      # - name: Handle Success/Failure Counter
-      #   if: always()
-      #   run: |
-      #     # Путь к локальному счетчику ошибок
-      #     ERR_FILE="consecutive_errors.txt"
-          
-      #     if [ "${{ steps.send_mail.outcome }}" == "failure" ]; then
-      #       # Увеличиваем счетчик ошибок
-      #       COUNT=$(cat $ERR_FILE 2>/dev/null || echo 0)
-      #       COUNT=$((COUNT + 1))
-      #       echo $COUNT > $ERR_FILE
-      #       echo "❌ Ошибка отправки. Подряд: $COUNT"
+      # Этот шаг выполнится ТОЛЬКО если почта ушла успешно
+      - name: Log Success
+        if: success()
+        run: touch "success_${{ strategy.job-index }}"
 
-      #       if [ "$COUNT" -ge 5 ]; then
-      #         echo "!!! КРИТИЧЕСКОЕ КОЛИЧЕСТВО ОШИБОК !!!"
-      #         touch STOP_MAILING
-      #         # В реальной матрице GitHub для передачи между итерациями 
-      #         # лучше использовать Artifacts или Cache, но при max-parallel: 1 
-      #         # мы можем просто проверять статус предыдущих джоб.
-      #       fi
-            
-      #       # Логируем email для отчета
-      #       echo "❌ Ошибка: ${{ matrix.contact.email }}" >> error_emails.txt
-      #     else
-      #       # Сбрасываем счетчик при успешной отправке
-      #       echo 0 > $ERR_FILE
-      #       # Просто создаем пустой файл с уникальным именем в случае успеха
-      #       touch "success_${{ strategy.job-index }}"
-      #     fi
+      # Этот шаг выполнится ТОЛЬКО если почта НЕ ушла (включая лимит 550)
+      - name: Log Error
+        if: failure()
+        run: |
+          echo "❌ Ошибка: ${{ matrix.contact.email }}" >> error_emails.txt
+          echo "🚨 Произошла критическая ошибка (возможно лимит Gmail). Проверьте логи выше."
 
       - name: Upload Success Marker
         if: always()
@@ -252,7 +183,6 @@ jobs:
           name: status-${{ strategy.job-index }}
           path: |
             error_emails.txt
-            # STOP_MAILING
           retention-days: 1
 
       - name: Wait
