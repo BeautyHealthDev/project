@@ -1,8 +1,8 @@
 name: 14-Day Sequential Blast to Removed 6 or 18
 
 on:
-  schedule:
-    - cron: '0 7 * * *' # Каждый день в 10:00 МСК
+#   schedule:
+#     - cron: '0 7 * * *' # Каждый день в 10:00 МСК
   workflow_dispatch:
     inputs:
       force_offset_day:
@@ -129,11 +129,11 @@ jobs:
         with:
           server_address: smtp.gmail.com
           server_port: 465
-          username: ${{ secrets.MAIL_USERNAME3 }}
-          password: ${{ secrets.MAIL_PASSWORD3 }}
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
           subject: "Ваш аккаунт в Faberlic скоро будет удален"
           to: ${{ matrix.contact.email }}
-          from: "Команда проекта Faberlic <${{ secrets.MAIL_USERNAME3 }}>"
+          from: "Команда проекта Faberlic <${{ secrets.MAIL_USERNAME }}>"
           # Отправляем уже подготовленный временный файл
           body: file://prepared_email.txt
 
