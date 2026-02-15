@@ -101,7 +101,7 @@ jobs:
     secrets: inherit
     
   send-tg-report:
-    needs: build-contacts-list
+    needs: [build-contacts-list, send-emails]
     # Запускаем, если файл был найден, даже если рассылка (email) не требуется
     if: needs.build-contacts-list.outputs.file_name != ''
     runs-on: ubuntu-latest
@@ -119,26 +119,20 @@ jobs:
           # 1. Общее количество
           TOTAL=$(jq '. | length' $FILE)
           
-          # 2. Рекурсивная сводная таблица по тьюторам
-          # Используем ваш проверенный скрипт с рекурсией
+          # 2. Рекурсивная сводная таблица по наставникам
           TABLE=$(jq -r '
             (map({(.name): .tutor_name}) | add) as $tree | 
             def get_all_tutors(name): 
               $tree[name] as $p | 
               if ($p == null or $p == "" or $p == name) then [] else [$p] + get_all_tutors($p) end; 
             map(get_all_tutors(.name)) | flatten | group_by(.) | 
-            map({t: .[0], c: length}) | sort_by(.c) | reverse | .[] | 
+            map({t: .[0], c: length}) | sort_by(.c) | reverse | .[] | select(.c >= 2) | 
             "\(.t) — \(.c) чел."
           ' $FILE)
 
-          # Формируем текст для Telegram (используем EOF для многострочного вывода)
-          echo "text<<EOF" >> $GITHUB_OUTPUT
-          echo "📊 *Новые регистрации*"
-          echo "Всего: $TOTAL чел."
-          echo ""
-          echo "🔝 *Структура (рекурсивно):*"
-          echo "${TABLE:-Нет данных по наставникам}"
-          echo "EOF" >> $GITHUB_OUTPUT
+          # Формируем параметры для текста в Telegram
+          echo "total=$TOTAL" >> $GITHUB_OUTPUT
+          echo "table=${TABLE:-Нет данных по наставникам}" >> $GITHUB_OUTPUT
 
       - name: Send Telegram
         uses: appleboy/telegram-action@master
@@ -146,4 +140,8 @@ jobs:
           to: ${{ secrets.TELEGRAM_CHAT_ID }}
           token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           format: markdown
-          message: ${{ steps.report.outputs.text }}
+          message: |
+            **Всего новичков: ${{ steps.report.outputs.total }} **
+            📊 **Распределение по наставникам (не менее 2 новичков):**
+            ${{ steps.report.outputs.table }}
+            
