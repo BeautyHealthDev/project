@@ -126,13 +126,16 @@ jobs:
               $tree[name] as $p | 
               if ($p == null or $p == "" or $p == name) then [] else [$p] + get_all_tutors($p) end; 
             map(get_all_tutors(.name)) | flatten | group_by(.) | 
-            map({t: .[0], c: length}) | sort_by(.c) | reverse | .[] | select(.c >= 2) | 
+            map({t: .[0], c: length}) | sort_by(.c) | reverse | .[] | select(.c >= 0) | 
             "\(.t) — \(.c) чел."
           ' $FILE)
 
           # Формируем параметры для текста в Telegram
+          # Безопасная запись многострочного вывода
           echo "total=$TOTAL" >> $GITHUB_OUTPUT
-          echo "table=${TABLE:-Нет данных по наставникам}" >> $GITHUB_OUTPUT
+          echo "table<<EOF" >> $GITHUB_OUTPUT
+          echo "${TABLE:-Нет данных по наставникам}" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Send Telegram
         uses: appleboy/telegram-action@master
@@ -142,6 +145,6 @@ jobs:
           format: markdown
           message: |
             **Всего новичков: ${{ steps.report.outputs.total }} **
-            📊 **Распределение по наставникам (не менее 2 новичков):**
+            📊 **Распределение по наставникам:**
             ${{ steps.report.outputs.table }}
             
