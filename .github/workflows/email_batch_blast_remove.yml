@@ -1,8 +1,8 @@
 name: 14-Day Sequential Blast to Removed 6 or 18
 
 on:
-#   schedule:
-#     - cron: '0 7 * * *' # Каждый день в 10:00 МСК
+  schedule:
+    - cron: '0 7 * * *' # Каждый день в 10:00 МСК
   workflow_dispatch:
     inputs:
       mail_acc_number:
@@ -29,7 +29,7 @@ jobs:
   prepare-slice:
     runs-on: ubuntu-latest
     env:
-      MAILING_START_DATE: '2026-02-06'
+      MAILING_START_DATE: '2026-02-18'
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
       current_day: ${{ steps.calc.outputs.day_diff }}
@@ -121,7 +121,7 @@ jobs:
         id: prepare_template
         run: |
           # ДАТА_ОКОНЧАНИЯ_КАТАЛОГА
-          CAT_END="15 февраля 2026"
+          CAT_END="01 марта 2026"
       
           # Читаем файл, заменяем поля подстановки на значения из матрицы и сохраняем во временный файл
           sed \
@@ -249,6 +249,7 @@ jobs:
           to: ${{ secrets.TELEGRAM_CHAT_ID }}
           token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           message: |
+            ✉️ Рассылка универсальная
             📅 День рассылки: ${{ needs.prepare-slice.outputs.current_day }} из 14
             📊 Статус: ${{ needs.send-emails.result }}
             ✅ Успешно отправлено: ${{ steps.total.outputs.total_success }}
