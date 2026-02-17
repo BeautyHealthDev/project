@@ -68,15 +68,39 @@ jobs:
           # Если inputs.idle_periods существует и не пуст, берем его. Иначе '6'
           IDLE_PERIODS: ${{ inputs.idle_periods || '6' }}
         run: |
-          # 1. Базовые параметры
+          # Базовые параметры
           OFFSET=${{ steps.calc.outputs.offset }}
           LIMIT=150
           FORCE_CONS="${{ github.event.inputs.force_cons_number }}"
           FILE="mailing/contacts_remove${IDLE_PERIODS}.json"
 
-          # 2. Фильтруем только валидных Gmail пользователей (как раньше)
-          # Сохраняем промежуточный результат во временный файл
-          jq -c '[.[] | select(.email != null and (.email | test("@gmail\\.com$")))]' "$FILE" > temp_valid.json
+          # # 2. Фильтруем только валидных Gmail пользователей (как раньше)
+          # # Сохраняем промежуточный результат во временный файл
+          # jq -c '[.[] | select(.email != null and (.email | test("@gmail\\.com$")))]' "$FILE" > temp_valid.json
+
+          # 1. Исправляем опечатки и отсекаем хвосты (sed)
+          sed -E -e 's|(@[a-zA-Z0-9.-]+\.com)[^"]*|\1|g' \
+                 -e 's|(@[a-zA-Z0-9.-]+\.ru)[^"]*|\1|g' \
+                 -e 's|(@[a-zA-Z0-9.-]+\.net)[^"]*|\1|g' \
+                 -e 's|@gmail\.commom|@gmail.com|g' \
+                 -e 's|@gmail\.commmooom|@gmail.com|g' \
+                 -e 's|@gmayil\.com|@gmail.com|g' \
+                 -e 's|@gamil\.com|@gmail.com|g' \
+                 -e 's|@mailr\.u|@mail.ru|g' \
+                 -e 's|@andex\.ru|@yandex.ru|g' \
+                 ${FILE} > fixed_contacts.json
+
+          # 2. Логируем удаленные (битые) адреса
+          # Находим разницу между всеми контактами и валидными
+          echo "=== СПИСОК УДАЛЕННЫХ (НЕКОРРЕКТНЫХ) АДРЕСОВ ==="
+          jq -r '.[] | select(.email == null or (.email | test("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$") | not)) | "Удален адрес: \(.email), имя: \(.name)"' fixed_contacts.json || echo "Битых или пустых адресов не найдено."
+          echo "==============================================="
+
+          # Валидация через jq: оставляем только корректные
+          jq -c '[.[] | select(.email != null and (.email | test("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$")))]' fixed_contacts.json > validated_contacts.json
+          
+          # Итоговая статистика
+          echo "Успешно валидировано: $(jq '. | length' validated_contacts.json) контактов."
 
           # 3. Логика выбора диапазона
           if [ -n "$FORCE_CONS" ]; then
@@ -84,14 +108,14 @@ jobs:
             
             # Находим индекс элемента, у которого cons_number совпадает с вводом
             # Если не найден, index вернет null, тогда начнем с 0
-            START_INDEX=$(jq "map(.cons_number == \"$FORCE_CONS\") | index(true) // 0" temp_valid.json)
+            START_INDEX=$(jq "map(.cons_number == \"$FORCE_CONS\") | index(true) // 0" validated_contacts.json)
             
             echo "Найден индекс: $START_INDEX. Игнорируем стандартный OFFSET."
-            JSON=$(jq -c ".[$START_INDEX:$START_INDEX+$LIMIT]" temp_valid.json)
+            JSON=$(jq -c ".[$START_INDEX:$START_INDEX+$LIMIT]" validated_contacts.json)
           else
             # Стандартная логика по дням (смещение OFFSET)
             echo "Используем стандартное смещение дня: $OFFSET"
-            JSON=$(jq -c ".[$OFFSET:$OFFSET+$LIMIT]" temp_valid.json)
+            JSON=$(jq -c ".[$OFFSET:$OFFSET+$LIMIT]" validated_contacts.json)
           fi
 
           # 4. Проверка на пустоту и вывод
