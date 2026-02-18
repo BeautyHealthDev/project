@@ -68,7 +68,7 @@ jobs:
         run: |
           # Базовые параметры
           OFFSET=${{ steps.calc.outputs.offset }}
-          LIMIT==${{ steps.calc.outputs.limit }}
+          LIMIT=${{ steps.calc.outputs.limit }}
           FORCE_CONS="${{ github.event.inputs.force_cons_number }}"
           FILE="mailing/contacts_yellow.json"
 
