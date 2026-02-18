@@ -59,17 +59,31 @@ jobs:
           echo "Успешно валидировано: $(jq '. | length' validated_contacts.json) контактов."
           cat "validated_contacts.json"
 
+          # Разрезаем файл на части
+          jq -c '.[0:900]' validated_contacts.json > part_1.json
+          jq -c '.[900:1800]' validated_contacts.json > part_2.json
+          jq -c '.[1800:]' validated_contacts.json > part_3.json
+          
+          # Логируем количество контактов в каждой части для проверки
+          echo "Part 1 (900): $(jq '. | length' part_1.json)"
+          echo "Part 2 (900): $(jq '. | length' part_2.json)"
+          echo "Part 3 (Remainder): $(jq '. | length' part_3.json
+
       - name: Commit and Push to mailing directory
         run: |
           # 1. Настройка данных бота GitHub
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          
+
           # 2. Перемещаем файл в целевой каталог
           mkdir -p mailing
-          mv validated_contacts.json mailing/contacts_yellow.json
+          mv part_1.json mailing/contacts_yellow.json
+          mv part_2.json mailing/contacts_yellow2.json
+          mv part_3.json mailing/contacts_yellow3.json
+          
           # 3. Добавляем файлы, фиксируем изменения и отправляем
-          git add mailing/contacts_yellow.json
+          git add mailing/contacts_yellow*.json
+          
           
           # Проверяем, есть ли реальные изменения, чтобы не падать на пустом коммите
           if git diff --staged --quiet; then
