@@ -60,13 +60,13 @@ jobs:
           # cat "validated_contacts.json"
 
           # Разрезаем файл на части
-          jq -c '.[0:900]' validated_contacts.json > part_1.json
-          jq -c '.[900:1800]' validated_contacts.json > part_2.json
-          jq -c '.[1800:]' validated_contacts.json > part_3.json
+          # jq -c '.[0:900]' validated_contacts.json > part_1.json
+          jq -c '.[0:1400]' validated_contacts.json > part_2.json
+          jq -c '.[1400:]' validated_contacts.json > part_3.json
           
           # Логируем количество контактов в каждой части для проверки
-          echo "Part 1 (900): $(jq '. | length' part_1.json)"
-          echo "Part 2 (900): $(jq '. | length' part_2.json)"
+          # echo "Part 1 (900): $(jq '. | length' part_1.json)"
+          echo "Part 2 (1400): $(jq '. | length' part_2.json)"
           echo "Part 3 (Remainder): $(jq '. | length' part_3.json)"
 
       - name: Commit and Push to mailing directory
@@ -77,7 +77,7 @@ jobs:
 
           # 2. Перемещаем файл в целевой каталог
           mkdir -p mailing
-          mv part_1.json mailing/contacts_yellow.json
+          # mv part_1.json mailing/contacts_yellow.json
           mv part_2.json mailing/contacts_yellow2.json
           mv part_3.json mailing/contacts_yellow3.json
           
