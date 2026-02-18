@@ -714,7 +714,7 @@
         FGROUPSCORE="33.78"
         NMONTHSWITHOUTLO="0"
         FDEBT="0"
-        FDEBTNEXT="1.11"
+        FDEBTNEXT="0"
       /><Detail
         textbox12="5057"
         NLEVEL="2"
@@ -240703,7 +240703,7 @@
         textbox14="743435150"
         DREGDATE="2026-01-13T00:00:00"
         textbox15=""
-        textbox19="+79184786310"
+        textbox19="+79960508482"
         SCONSEMAIL="dadiluha@mail.ru"
         FSELFSCORE="0"
         FSELFGROUPSCORE="0"
@@ -332362,7 +332362,7 @@
         FBAAGROUPSCORE="2.36"
         NMONTHSWITHOUTLO="0"
         FDEBT="0"
-        FDEBTNEXT="4.98"
+        FDEBTNEXT="0"
       /><Detail
         textbox12="8787"
         NLEVEL="3"
