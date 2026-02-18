@@ -16,6 +16,11 @@ on:
       force_offset_day:
         description: 'Принудительный день рассылки (0-13)'
         required: false
+      day_portion:
+        description: 'По сколько писем за 1 раз отправлять'
+        required: true
+        type: number
+        default: 100
 
 jobs:
   prepare-slice:
@@ -25,6 +30,8 @@ jobs:
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
       current_day: ${{ steps.calc.outputs.day_diff }}
+      limit: ${{ steps.calc.outputs.limit }}
+      offset: ${{ steps.calc.outputs.offset }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -34,6 +41,7 @@ jobs:
         run: |
           # 1. Берем дату старта из env
           START_DATE="${{ env.MAILING_START_DATE }}"
+          DAY_PORTION=${{ github.event.inputs.day_portion }}
           
           # 2. Считаем разницу в днях между СЕГОДНЯ и START_DATE
           CURRENT_SEC=$(date +%s)
@@ -52,19 +60,17 @@ jobs:
           fi
 
           echo "day_diff=$DAY_DIFF" >> $GITHUB_OUTPUT
-          echo "offset=$(( DAY_DIFF * 200 ))" >> $GITHUB_OUTPUT
+          echo "offset=$(( DAY_DIFF * DAY_PORTION ))" >> $GITHUB_OUTPUT
+          echo "limit=$DAY_PORTION" >> $GITHUB_OUTPUT
 
       - name: Slice Contacts
         id: set-matrix
-        env:
-          # Если inputs.mail_acc_number существует и не пуст, берем его. Иначе ''
-          MAIL_ACC_NUMBER: ${{ inputs.mail_acc_number || '' }}
         run: |
           # Базовые параметры
           OFFSET=${{ steps.calc.outputs.offset }}
-          LIMIT=200
+          LIMIT==${{ steps.calc.outputs.limit }}
           FORCE_CONS="${{ github.event.inputs.force_cons_number }}"
-          FILE="mailing/contacts_yellow${MAIL_ACC_NUMBER}.json"
+          FILE="mailing/contacts_yellow.json"
 
           # 1. Исправляем опечатки и отсекаем хвосты (sed)
           sed -E -e 's|(@[a-zA-Z0-9.-]+\.com)[^"]*|\1|g' \
@@ -259,8 +265,8 @@ jobs:
           to: ${{ secrets.TELEGRAM_CHAT_ID }}
           token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           message: |
-            ✉️ Рассылка универсальная
-            📅 День рассылки: ${{ needs.prepare-slice.outputs.current_day }} из 14
+            ✉️ Рассылка "желтым", порция: ${{ needs.prepare-slice.outputs.limit }}, начиная с ${{ needs.prepare-slice.outputs.offset }}
+            📅 Раз рассылки: ${{ needs.prepare-slice.outputs.current_day }}, аккаунт рассылки: ${{ github.event.inputs.mail_acc_number }}
             📊 Статус: ${{ needs.send-emails.result }}
             ✅ Успешно отправлено: ${{ steps.total.outputs.total_success }}
             
