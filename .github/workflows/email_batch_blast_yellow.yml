@@ -52,7 +52,7 @@ jobs:
           fi
 
           echo "day_diff=$DAY_DIFF" >> $GITHUB_OUTPUT
-          echo "offset=$(( DAY_DIFF * 150 ))" >> $GITHUB_OUTPUT
+          echo "offset=$(( DAY_DIFF * 200 ))" >> $GITHUB_OUTPUT
 
       - name: Slice Contacts
         id: set-matrix
@@ -62,7 +62,7 @@ jobs:
         run: |
           # Базовые параметры
           OFFSET=${{ steps.calc.outputs.offset }}
-          LIMIT=150
+          LIMIT=200
           FORCE_CONS="${{ github.event.inputs.force_cons_number }}"
           FILE="mailing/contacts_yellow${MAIL_ACC_NUMBER}.json"
 
