@@ -7,7 +7,7 @@ jobs:
   build-contacts-list:
     runs-on: ubuntu-latest
     env:
-      REPORT: 'ConsultantTreeMLM'
+      REPORT: 'ConsultantTreeMLM_JULIA'
     permissions:
       contents: write  # Разрешает пуш в репозиторий
     steps:
