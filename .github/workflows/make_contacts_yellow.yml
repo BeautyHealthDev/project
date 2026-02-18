@@ -57,7 +57,7 @@ jobs:
 
           # Итоговая статистика
           echo "Успешно валидировано: $(jq '. | length' validated_contacts.json) контактов."
-          cat "validated_contacts.json"
+          # cat "validated_contacts.json"
 
           # Разрезаем файл на части
           jq -c '.[0:900]' validated_contacts.json > part_1.json
@@ -67,7 +67,7 @@ jobs:
           # Логируем количество контактов в каждой части для проверки
           echo "Part 1 (900): $(jq '. | length' part_1.json)"
           echo "Part 2 (900): $(jq '. | length' part_2.json)"
-          echo "Part 3 (Remainder): $(jq '. | length' part_3.json
+          echo "Part 3 (Remainder): $(jq '. | length' part_3.json)"
 
       - name: Commit and Push to mailing directory
         run: |
