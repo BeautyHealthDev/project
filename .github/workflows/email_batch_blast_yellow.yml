@@ -1,0 +1,270 @@
+name: Yellow Sequential Blast
+
+on:
+  # schedule:
+  #   - cron: '0 7 * * *' # Каждый день в 10:00 МСК
+  workflow_dispatch:
+    inputs:
+      mail_acc_number:
+        description: 'Вести рассылку с адреса MAIL_USERNAME [значения <пусто>,2,3]'
+        required: false
+        default: ''
+      force_cons_number:
+        description: 'Начать рассылку с номера консультанта (например, 744707107)'
+        required: false
+        default: ''
+      force_offset_day:
+        description: 'Принудительный день рассылки (0-13)'
+        required: false
+
+jobs:
+  prepare-slice:
+    runs-on: ubuntu-latest
+    env:
+      MAILING_START_DATE: '2026-02-18'
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+      current_day: ${{ steps.calc.outputs.day_diff }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Calculate Current Day from Start
+        id: calc
+        run: |
+          # 1. Берем дату старта из env
+          START_DATE="${{ env.MAILING_START_DATE }}"
+          
+          # 2. Считаем разницу в днях между СЕГОДНЯ и START_DATE
+          CURRENT_SEC=$(date +%s)
+          START_SEC=$(date -d "$START_DATE" +%s)
+          DAY_DIFF=$(( (CURRENT_SEC - START_SEC) / 86400 ))
+          
+          # 3. Если запуск ручной - переопределяем день
+          if [ -n "${{ github.event.inputs.force_offset_day }}" ]; then
+            DAY_DIFF=${{ github.event.inputs.force_offset_day }}
+          fi
+
+          # 4. Проверка: если вышли за пределы 14 дней - стоп
+          if [ "$DAY_DIFF" -lt 0 ] || [ "$DAY_DIFF" -ge 14 ]; then
+            echo "Текущий день ($DAY_DIFF) вне диапазона 0-13. Рассылка не требуется."
+            exit 0
+          fi
+
+          echo "day_diff=$DAY_DIFF" >> $GITHUB_OUTPUT
+          echo "offset=$(( DAY_DIFF * 150 ))" >> $GITHUB_OUTPUT
+
+      - name: Slice Contacts
+        id: set-matrix
+        env:
+          # Если inputs.mail_acc_number существует и не пуст, берем его. Иначе ''
+          MAIL_ACC_NUMBER: ${{ inputs.mail_acc_number || '' }}
+        run: |
+          # Базовые параметры
+          OFFSET=${{ steps.calc.outputs.offset }}
+          LIMIT=150
+          FORCE_CONS="${{ github.event.inputs.force_cons_number }}"
+          FILE="mailing/contacts_yellow${MAIL_ACC_NUMBER}.json"
+
+          # 1. Исправляем опечатки и отсекаем хвосты (sed)
+          sed -E -e 's|(@[a-zA-Z0-9.-]+\.com)[^"]*|\1|g' \
+                 -e 's|(@[a-zA-Z0-9.-]+\.ru)[^"]*|\1|g' \
+                 -e 's|(@[a-zA-Z0-9.-]+\.net)[^"]*|\1|g' \
+                 -e 's|@gmail\.commom|@gmail.com|g' \
+                 -e 's|@gmail\.commmooom|@gmail.com|g' \
+                 -e 's|@gmayil\.com|@gmail.com|g' \
+                 -e 's|@gamil\.com|@gmail.com|g' \
+                 -e 's|@mailr\.u|@mail.ru|g' \
+                 -e 's|@andex\.ru|@yandex.ru|g' \
+                 ${FILE} > fixed_contacts.json
+
+          # 2. Логируем удаленные (битые) адреса
+          # Находим разницу между всеми контактами и валидными
+          echo "=== СПИСОК УДАЛЕННЫХ (НЕКОРРЕКТНЫХ) АДРЕСОВ ==="
+          jq -r '.[] | select(.email == null or (.email | test("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$") | not)) | "Удален адрес: \(.email), имя: \(.name)"' fixed_contacts.json || echo "Битых или пустых адресов не найдено."
+          echo "==============================================="
+
+          # Валидация через jq: оставляем только корректные
+          jq -c '[.[] | select(.email != null and (.email | test("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$")))]' fixed_contacts.json > validated_contacts.json
+          
+          # Итоговая статистика
+          echo "Успешно валидировано: $(jq '. | length' validated_contacts.json) контактов."
+
+          # 3. Логика выбора диапазона
+          if [ -n "$FORCE_CONS" ]; then
+            echo "Поиск стартового номера: $FORCE_CONS"
+            
+            # Находим индекс элемента, у которого cons_number совпадает с вводом
+            # Если не найден, index вернет null, тогда начнем с 0
+            START_INDEX=$(jq "map(.cons_number == \"$FORCE_CONS\") | index(true) // 0" validated_contacts.json)
+            
+            echo "Найден индекс: $START_INDEX. Игнорируем стандартный OFFSET."
+            JSON=$(jq -c ".[$START_INDEX:$START_INDEX+$LIMIT]" validated_contacts.json)
+          else
+            # Стандартная логика по дням (смещение OFFSET)
+            echo "Используем стандартное смещение дня: $OFFSET"
+            JSON=$(jq -c ".[$OFFSET:$OFFSET+$LIMIT]" validated_contacts.json)
+          fi
+
+          # 4. Проверка на пустоту и вывод
+          if [ "$JSON" == "[]" ] || [ -z "$JSON" ]; then
+            echo "Контакты не найдены."
+            exit 0
+          fi
+          echo "matrix=${JSON}" >> $GITHUB_OUTPUT
+
+  send-emails:
+    needs: prepare-slice
+    env:
+      MAILING_STOPPED: false
+    strategy:
+      fail-fast: true # <--- ЭТО ОСТАНОВИТ ВСЮ МАТРИЦУ ПРИ ПЕРВОЙ ЖЕ ОШИБКЕ 'exit 1'
+      max-parallel: 1
+      matrix:
+        contact: ${{ fromJson(needs.prepare-slice.outputs.matrix) }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Prepare Template for ${{ matrix.contact.name }}
+        id: prepare_template
+        run: |
+          # ДАТА_ОКОНЧАНИЯ_КАТАЛОГА
+          CAT_END="01 марта 2026"
+      
+          # Читаем файл, заменяем поля подстановки на значения из матрицы и сохраняем во временный файл
+          sed \
+              -e "s|%ФИО%|${{ matrix.contact.name }}|g" \
+              -e "s|%ФАМИЛИЯ%|${{ matrix.contact.lastname }}|g" \
+              -e "s|%ИМЯ%|${{ matrix.contact.firstname }}|g" \
+              -e "s|%ОТЧЕСТВО%|${{ matrix.contact.patronymic }}|g" \
+              -e "s|%НОМЕР_КОНСУЛЬТАНТА%|${{ matrix.contact.cons_number }}|g" \
+              -e "s|%EMAIL%|${{ matrix.contact.email }}|g" \
+              -e "s|%НАСТАВНИК_ФИО%|${{ matrix.contact.tutor_name }}|g" \
+              -e "s|%НАСТАВНИК_ТЕЛЕФОН%|${{ matrix.contact.tutor_phone }}|g" \
+              -e "s|%НАСТАВНИК_EMAIL%|${{ matrix.contact.tutor_email }}|g" \
+              -e "s|%ДАТА_ОКОНЧАНИЯ_КАТАЛОГА%|${CAT_END}|g" \
+              mailing/yellow.txt > prepared_email.txt
+          cat "prepared_email.txt" 
+          
+      - name: Send Mail
+        if: env.MAILING_STOPPED != 'true'
+        id: send_mail
+        # УБИРАЕМ continue-on-error: true
+        # Теперь при ошибке 550 5.4.5 этот шаг ПРЕРВЕТ джобу
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          # Динамически формируем имя секрета: MAIL_USERNAME + номер
+          username: ${{ secrets[format('MAIL_USERNAME{0}', github.event.inputs.mail_acc_number)] }}
+          password: ${{ secrets[format('MAIL_PASSWORD{0}', github.event.inputs.mail_acc_number)] }}
+          subject: "Вам подарок от Faberlic, ${{ matrix.contact.firstname }}!"
+          to: ${{ matrix.contact.email }}
+          from: "Команда проекта Faberlic <${{ secrets[format('MAIL_USERNAME{0}', github.event.inputs.mail_acc_number)] }}>"
+          # Отправляем уже подготовленный временный файл
+          body: file://prepared_email.txt
+
+      # Этот шаг выполнится ТОЛЬКО если почта ушла успешно
+      - name: Log Success
+        if: success()
+        run: touch "success_${{ strategy.job-index }}"
+
+      # Этот шаг выполнится ТОЛЬКО если почта НЕ ушла (включая лимит 550)
+      - name: Log Error
+        if: failure()
+        run: |
+          echo "❌ Ошибка: ${{ matrix.contact.email }}" >> error_emails.txt
+          echo "🚨 Произошла критическая ошибка (возможно лимит Gmail). Проверьте логи выше."
+
+      - name: Upload Success Marker
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: success-marker-${{ strategy.job-index }}
+          path: success_*
+          retention-days: 1
+      
+      - name: Upload Error Status
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: status-${{ strategy.job-index }}
+          path: |
+            error_emails.txt
+          retention-days: 1
+
+      - name: Wait
+        if: env.MAILING_STOPPED != 'true'
+        run: sleep 5
+
+  send-report:
+    runs-on: ubuntu-latest
+    needs: [prepare-slice, send-emails]
+    if: always()
+    steps:
+      - name: Download Success Markers
+        uses: actions/download-artifact@v4
+        with:
+          path: all-success
+          pattern: success-marker-*
+          merge-multiple: true
+        continue-on-error: true
+
+      - name: Calculate Total Success
+        id: total
+        run: |
+          if [ -d "all-success" ]; then
+            # Считаем количество файлов маркеров
+            COUNT=$(ls all-success/success_* 2>/dev/null | wc -l)
+            echo "total_success=$COUNT" >> $GITHUB_OUTPUT
+          else
+            echo "total_success=0" >> $GITHUB_OUTPUT
+          fi
+
+        # Удаление артефактов сразу после подсчета
+      - name: Clean up success markers
+        uses: geekyeggo/delete-artifact@v5
+        with:
+          # Удаляем все артефакты, подходящие под маску
+          name: success-marker-*
+          use_glob: true
+          fail_on_missing: false
+      
+      - name: Download all error logs
+        uses: actions/download-artifact@v4
+        with:
+          path: all-errors
+          pattern: error-logs-*
+          merge-multiple: true
+        continue-on-error: true
+
+      - name: Prepare Error Message
+        id: err_list
+        run: |
+          if [ -f "all-errors/error_emails.txt" ]; then
+            # Читаем список ошибок, ограничиваем длину для Telegram (макс 4096 симв)
+            ERRORS=$(cat all-errors/error_emails.txt | head -n 20)
+            echo "list<<EOF" >> $GITHUB_OUTPUT
+            echo "$ERRORS" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          else
+            echo "list=Ошибок не обнаружено" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Telegram Notification
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_CHAT_ID }}
+          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          message: |
+            ✉️ Рассылка универсальная
+            📅 День рассылки: ${{ needs.prepare-slice.outputs.current_day }} из 14
+            📊 Статус: ${{ needs.send-emails.result }}
+            ✅ Успешно отправлено: ${{ steps.total.outputs.total_success }}
+            
+            ⚠️ Список ошибок (первые 5):
+            ${{ steps.err_list.outputs.list }}
+            
+            🔗 Полные логи: https://github.com{{ github.repository }}/actions/runs/${{ github.run_id }}
