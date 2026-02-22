@@ -1,8 +1,8 @@
 name: 2-nd Part Sequential Blast to Removed 6
 
 on:
-  schedule:
-    - cron: '0 8 * * *' # Каждый день в 11:00 МСК
+  # schedule:
+  #   - cron: '0 8 * * *' # Каждый день в 11:00 МСК
   workflow_dispatch:
     inputs:
       force_cons_number:
