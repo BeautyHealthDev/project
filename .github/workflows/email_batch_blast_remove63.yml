@@ -1,8 +1,8 @@
 name: 3-d Part Sequential Blast to Removed 6
 
 on:
-  schedule:
-    - cron: '0 9 * * *' # Каждый день в 12:00 МСК
+  # schedule:
+  #   - cron: '0 9 * * *' # Каждый день в 12:00 МСК
   workflow_dispatch:
     inputs:
       force_cons_number:
