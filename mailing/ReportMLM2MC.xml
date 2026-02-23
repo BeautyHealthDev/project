@@ -38529,7 +38529,7 @@
         SCONS="Журавлева Наталья Юрьевна"
         textbox14="737450271"
         DREGDATE="2025-11-08T00:00:00"
-        textbox15=""
+        textbox15="УК"
         textbox19="+79222271722"
         FSELFSCORE="0"
         FSELFGROUPSCORE="0"
@@ -207783,7 +207783,7 @@
         FGROUPSCORE="51.59"
         NMONTHSWITHOUTLO="0"
         FDEBT="0"
-        FDEBTNEXT="22.95"
+        FDEBTNEXT="0"
       /><Detail
         textbox12="8787"
         NLEVEL="2"
@@ -252766,7 +252766,7 @@
         FGROUPSCORE="53.53"
         NMONTHSWITHOUTLO="0"
         FDEBT="0"
-        FDEBTNEXT="53.53"
+        FDEBTNEXT="0"
       /><Detail
         textbox12="8787"
         NLEVEL="2"
@@ -422248,7 +422248,6 @@
         DREGDATE="2026-01-15T00:00:00"
         textbox15=""
         textbox19="+79066256485"
-        SCONSEMAIL="kostulinairina0@gmail.com"
         FSELFSCORE="0"
         FSELFGROUPSCORE="0"
         FGROUPSCORE="0"
@@ -441019,7 +441018,7 @@
         FBAAGROUPSCORE="8.43"
         NMONTHSWITHOUTLO="0"
         FDEBT="0"
-        FDEBTNEXT="7.10"
+        FDEBTNEXT="0"
       /><Detail
         textbox12="8787"
         NLEVEL="1"
