@@ -176,10 +176,10 @@ jobs:
         with:
           server_address: smtp.gmail.com
           server_port: 465
-          username: ${{ secrets.MAIL_USERNAME }}
-          password: ${{ secrets.MAIL_PASSWORD }}
+          username: ${{ secrets.MAIL_USERNAME2 }}
+          password: ${{ secrets.MAIL_PASSWORD2 }}
           subject: ${{ env.MAIL_SUBJECT }}
           to: ${{ matrix.contact.email }}
-          from: "Команда проекта Faberlic <${{ secrets.MAIL_USERNAME }}>"
+          from: "Команда проекта Faberlic <${{ secrets.MAIL_USERNAME2 }}>"
           # Отправляем уже подготовленный временный файл
           body: file://prepared_email.txt
