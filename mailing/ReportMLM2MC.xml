@@ -269969,7 +269969,7 @@
         FGROUPSCORE="0"
         NMONTHSWITHOUTLO="9"
         FDEBT="2.22"
-        FDEBTNEXT="2.22"
+        FDEBTNEXT="0"
       /><Detail
         textbox12="8787"
         NLEVEL="1"
