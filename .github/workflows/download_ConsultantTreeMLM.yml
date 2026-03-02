@@ -8,7 +8,7 @@ on:
         period:
           description: 'Период'
           required: true
-          default: '- 04/2026'
+          default: '04/2026'
           type: choice
           options:
             - 01/2026
