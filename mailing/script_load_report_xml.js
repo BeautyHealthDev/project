@@ -43,9 +43,9 @@ console.log(`Сформирован URL ${report}-отчета: ${reportPage}`);
   page.setDefaultTimeout(0); 
   // Ждем, пока SSRS "отлагает" внутри
   // 1. Ждем, пока исчезнет индикатор "Loading..." (если он есть в DOM)
-  await page.waitForSelector('#ReportViewerControl_AsyncWait_Wait', { state: 'hidden', timeout: 120000 }).catch(() => {});
+  await page.waitForSelector('#ReportViewerControl_AsyncWait_Wait', { state: 'hidden', timeout: 240000 }).catch(() => {});
   // 2. Ждем, пока в области отчета появится реальный контент (таблица или ячейка)
-  await page.waitForSelector('div[id*="VisibleReportContent"]', { timeout: 120000 });
+  await page.waitForSelector('div[id*="VisibleReportContent"]', { timeout: 240000 });
   // 3. И только теперь проверяем статус через waitForFunction
   await page.waitForFunction(() => {
       const v = window.$find("ReportViewerControl");
