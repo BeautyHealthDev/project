@@ -1,8 +1,8 @@
 name: 14-Day Sequential Blast to Removed 6 or 18
 
 on:
-  schedule:
-    - cron: '0 7 * * *' # Каждый день в 10:00 МСК
+  # schedule:
+  #   - cron: '0 7 * * *' # Каждый день в 10:00 МСК
   workflow_dispatch:
     inputs:
       mail_acc_number:
