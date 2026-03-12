@@ -17,6 +17,7 @@ jobs:
     env:
       REPORT_TYPE: 'none' 
       REPORT_NAME: 'none' # Инициализация, чтобы избежать ошибки доступа
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true # Активирует Node.js 24 для всех JS-действий в этом задании    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
