@@ -10,11 +10,11 @@ on:
       template_name:
         description: 'Шаблон письма'
         required: true
-        default: 'mailing/template.txt'
+        default: 'mailing/new.txt'
       delay_seconds:
         description: 'Задержка (сек)'
         required: true
-        default: '2'
+        default: '5'
 
   # Добавляем возможность вызова из других workflow
   workflow_call:
@@ -26,11 +26,11 @@ on:
       template_name:
         type: string
         required: true
-        default: 'mailing/template.txt'
+        default: 'mailing/new.txt'
       delay_seconds:
         type: string
         required: true
-        default: '2'
+        default: '5'
 
 jobs:
   prepare:
@@ -138,6 +138,30 @@ jobs:
       - name: Prepare Template for ${{ matrix.contact.name }}
         id: prepare_template
         run: |
+        run: |
+          # Определяем значение бонуса на основе matrix.contact.name
+          case "${{ matrix.contact.name }}" in
+            "300_RUB")  ORDER="1500 руб." ;;
+            "9_AZN")    ORDER="45 AZN" ;;
+            "1800_AMD")  ORDER="9000 AMD" ;;
+            "10_BYN")    ORDER="50 BYN" ;;
+            "10_GEL")    ORDER="50 GEL" ;;
+            "1500_KZT")  ORDER="7500 KZT" ;;
+            "300_KGS")  ORDER="1500 KGS" ;;
+            "40_TJS")   ORDER="200 TJS" ;;
+            *)           ORDER="1500 руб." ;; # Значение по умолчанию
+          esac
+          case "${{ matrix.contact.name }}" in
+            "300_RUB")   BONUS="300 руб." ;;
+            "9_AZN")     BONUS="9 AZN" ;;
+            "1800_AMD")  BONUS="1800 AMD" ;;
+            "10_BYN")    BONUS="10 BYN" ;;
+            "10_GEL")    BONUS="10 GEL" ;;
+            "1500_KZT")  BONUS="1500 KZT" ;;
+            "300_KGS")   BONUS="300 KGS" ;;
+            "40_TJS")    BONUS="40 TJS" ;;
+            *)           BONUS="300 руб." ;; # Значение по умолчанию
+          esac
           # Читаем файл, заменяем {name} на значение из матрицы и сохраняем во временный файл
           # Используем @ в качестве разделителя в sed на случай, если в имени есть слеши
           sed \
@@ -150,6 +174,8 @@ jobs:
               -e "s|%НАСТАВНИК_ФИО%|${{ matrix.contact.tutor_name }}|g" \
               -e "s|%НАСТАВНИК_ТЕЛЕФОН%|${{ matrix.contact.tutor_phone }}|g" \
               -e "s|%НАСТАВНИК_EMAIL%|${{ matrix.contact.tutor_email }}|g" \
+              -e "s|%БОНУС%|$BONUS|g" \
+              -e "s|%ЗАКАЗ%|$ORDER|g" \
               ${{ inputs.template_name }} > prepared_email.txt
           cat "prepared_email.txt" 
           
@@ -158,6 +184,9 @@ jobs:
           case "${{ inputs.template_name }}" in
             "mailing/new.txt")
               echo "MAIL_SUBJECT=Добро пожаловать в Команду, ${{ matrix.contact.firstname }}!" >> $GITHUB_ENV
+              ;;
+            "mailing/green.txt")
+              echo "MAIL_SUBJECT=${{ matrix.contact.firstname }}, получите подарок от Faberlic!" >> $GITHUB_ENV
               ;;
             "mailing/remove6.txt")
               echo "MAIL_SUBJECT=Ваш аккаунт в Faberlic скоро будет удален" >> $GITHUB_ENV
@@ -183,16 +212,16 @@ jobs:
       - name: Use check even/odd day result
         run: echo "Будет использован для рассылки аккаунт ${{ format('MAIL_USERNAME{0}', steps.check_day.outputs.result) }}"
 
-      - name: Send mail to ${{ matrix.contact.email }}
-        uses: dawidd6/action-send-mail@v3
-        with:
-          server_address: smtp.gmail.com
-          server_port: 465
-          # Динамически формируем имя секрета: MAIL_USERNAME + номер
-          username: ${{ secrets[format('MAIL_USERNAME{0}', steps.check_day.outputs.result)] }}
-          password: ${{ secrets[format('MAIL_PASSWORD{0}', steps.check_day.outputs.result)] }}
-          subject: ${{ env.MAIL_SUBJECT }}
-          to: ${{ matrix.contact.email }}
-          from: "Команда проекта Faberlic <${{ secrets[format('MAIL_USERNAME{0}', steps.check_day.outputs.result)] }}>"
-          # Отправляем уже подготовленный временный файл
-          body: file://prepared_email.txt
+      # - name: Send mail to ${{ matrix.contact.email }}
+      #   uses: dawidd6/action-send-mail@v3
+      #   with:
+      #     server_address: smtp.gmail.com
+      #     server_port: 465
+      #     # Динамически формируем имя секрета: MAIL_USERNAME + номер
+      #     username: ${{ secrets[format('MAIL_USERNAME{0}', steps.check_day.outputs.result)] }}
+      #     password: ${{ secrets[format('MAIL_PASSWORD{0}', steps.check_day.outputs.result)] }}
+      #     subject: ${{ env.MAIL_SUBJECT }}
+      #     to: ${{ matrix.contact.email }}
+      #     from: "Команда проекта Faberlic <${{ secrets[format('MAIL_USERNAME{0}', steps.check_day.outputs.result)] }}>"
+      #     # Отправляем уже подготовленный временный файл
+      #     body: file://prepared_email.txt
