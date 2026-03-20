@@ -185,7 +185,7 @@ jobs:
               echo "MAIL_SUBJECT=Добро пожаловать в Команду, ${{ matrix.contact.firstname }}!" >> $GITHUB_ENV
               ;;
             "mailing/green.txt")
-              echo "MAIL_SUBJECT=${{ matrix.contact.firstname }}, получите подарок от Faberlic!" >> $GITHUB_ENV
+              echo "MAIL_SUBJECT=${{ matrix.contact.firstname }}, Faberlic дарит Вам денежный подарок" >> $GITHUB_ENV
               ;;
             "mailing/remove6.txt")
               echo "MAIL_SUBJECT=Ваш аккаунт в Faberlic скоро будет удален" >> $GITHUB_ENV
@@ -211,16 +211,16 @@ jobs:
       - name: Use check even/odd day result
         run: echo "Будет использован для рассылки аккаунт ${{ format('MAIL_USERNAME{0}', steps.check_day.outputs.result) }}"
 
-      # - name: Send mail to ${{ matrix.contact.email }}
-      #   uses: dawidd6/action-send-mail@v3
-      #   with:
-      #     server_address: smtp.gmail.com
-      #     server_port: 465
-      #     # Динамически формируем имя секрета: MAIL_USERNAME + номер
-      #     username: ${{ secrets[format('MAIL_USERNAME{0}', steps.check_day.outputs.result)] }}
-      #     password: ${{ secrets[format('MAIL_PASSWORD{0}', steps.check_day.outputs.result)] }}
-      #     subject: ${{ env.MAIL_SUBJECT }}
-      #     to: ${{ matrix.contact.email }}
-      #     from: "Команда проекта Faberlic <${{ secrets[format('MAIL_USERNAME{0}', steps.check_day.outputs.result)] }}>"
-      #     # Отправляем уже подготовленный временный файл
-      #     body: file://prepared_email.txt
+      - name: Send mail to ${{ matrix.contact.email }}
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          # Динамически формируем имя секрета: MAIL_USERNAME + номер
+          username: ${{ secrets[format('MAIL_USERNAME{0}', steps.check_day.outputs.result)] }}
+          password: ${{ secrets[format('MAIL_PASSWORD{0}', steps.check_day.outputs.result)] }}
+          subject: ${{ env.MAIL_SUBJECT }}
+          to: ${{ matrix.contact.email }}
+          from: "Команда проекта Faberlic <${{ secrets[format('MAIL_USERNAME{0}', steps.check_day.outputs.result)] }}>"
+          # Отправляем уже подготовленный временный файл
+          body: file://prepared_email.txt
