@@ -205,7 +205,7 @@ jobs:
           # %d возвращает число месяца (01-31)
           DAY=$(date +%-d) 
           # Расчет: (0 + 2) = 2 для четных, (1 + 2) = 3 для нечетных
-          RESULT=$(( (DAY % 2) + 1 ))
+          RESULT=$(( (DAY % 2) + 3 ))
           echo "result=$RESULT" >> $GITHUB_OUTPUT
       
       - name: Use check even/odd day result
