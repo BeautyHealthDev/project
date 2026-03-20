@@ -205,8 +205,9 @@ jobs:
           # %d возвращает число месяца (01-31)
           DAY=$(date +%-d) 
           # Расчет: (0 + 2) = 2 для четных, (1 + 2) = 3 для нечетных
-          RESULT=$(( (DAY % 2) + 3 ))
-          echo "result=$RESULT" >> $GITHUB_OUTPUT
+          RESULT=$(( (DAY % 2) + 2 ))
+          # echo "result=$RESULT" >> $GITHUB_OUTPUT
+          echo "result=''" >> $GITHUB_OUTPUT
       
       - name: Use check even/odd day result
         run: echo "Будет использован для рассылки аккаунт ${{ format('MAIL_USERNAME{0}', steps.check_day.outputs.result) }}"
