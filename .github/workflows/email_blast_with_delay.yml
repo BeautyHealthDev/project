@@ -139,7 +139,7 @@ jobs:
         id: prepare_template
         run: |
           # Определяем значение бонуса на основе matrix.contact.name
-          case "${{ matrix.contact.name }}" in
+          case "${{ matrix.contact.promo }}" in
             "300_RUB")  ORDER="1500 руб." ;;
             "9_AZN")    ORDER="45 AZN" ;;
             "1800_AMD")  ORDER="9000 AMD" ;;
@@ -150,7 +150,7 @@ jobs:
             "40_TJS")   ORDER="200 TJS" ;;
             *)           ORDER="1500 руб." ;; # Значение по умолчанию
           esac
-          case "${{ matrix.contact.name }}" in
+          case "${{ matrix.contact.promo }}" in
             "300_RUB")   BONUS="300 руб." ;;
             "9_AZN")     BONUS="9 AZN" ;;
             "1800_AMD")  BONUS="1800 AMD" ;;
@@ -205,7 +205,7 @@ jobs:
           # %d возвращает число месяца (01-31)
           DAY=$(date +%-d) 
           # Расчет: (0 + 2) = 2 для четных, (1 + 2) = 3 для нечетных
-          RESULT=$(( (DAY % 2) + 2 ))
+          RESULT=$(( (DAY % 2) + 1 ))
           echo "result=$RESULT" >> $GITHUB_OUTPUT
       
       - name: Use check even/odd day result
