@@ -138,7 +138,6 @@ jobs:
       - name: Prepare Template for ${{ matrix.contact.name }}
         id: prepare_template
         run: |
-        run: |
           # Определяем значение бонуса на основе matrix.contact.name
           case "${{ matrix.contact.name }}" in
             "300_RUB")  ORDER="1500 руб." ;;
