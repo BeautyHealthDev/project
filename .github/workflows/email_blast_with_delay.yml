@@ -206,8 +206,7 @@ jobs:
           DAY=$(date +%-d) 
           # Расчет: (0 + 2) = 2 для четных, (1 + 2) = 3 для нечетных
           RESULT=$(( (DAY % 2) + 2 ))
-          # echo "result=$RESULT" >> $GITHUB_OUTPUT
-          echo "result=''" >> $GITHUB_OUTPUT
+          echo "result=$RESULT" >> $GITHUB_OUTPUT
       
       - name: Use check even/odd day result
         run: echo "Будет использован для рассылки аккаунт ${{ format('MAIL_USERNAME{0}', steps.check_day.outputs.result) }}"
@@ -218,8 +217,10 @@ jobs:
           server_address: smtp.gmail.com
           server_port: 465
           # Динамически формируем имя секрета: MAIL_USERNAME + номер
-          username: ${{ secrets[format('MAIL_USERNAME{0}', steps.check_day.outputs.result)] }}
-          password: ${{ secrets[format('MAIL_PASSWORD{0}', steps.check_day.outputs.result)] }}
+          # username: ${{ secrets[format('MAIL_USERNAME{0}', steps.check_day.outputs.result)] }}
+          # password: ${{ secrets[format('MAIL_PASSWORD{0}', steps.check_day.outputs.result)] }}
+          username: 'MAIL_USERNAME'
+          password: 'MAIL_PASSWORD'
           subject: ${{ env.MAIL_SUBJECT }}
           to: ${{ matrix.contact.email }}
           from: "Команда проекта Faberlic <${{ secrets[format('MAIL_USERNAME{0}', steps.check_day.outputs.result)] }}>"
