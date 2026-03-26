@@ -137,31 +137,7 @@ jobs:
         id: prepare_template
         run: |
           # ДАТА_ОКОНЧАНИЯ_КАТАЛОГА
-          CAT_END="22 марта 2026"
-
-          # Определяем значение бонуса на основе matrix.contact.name
-          case "${{ matrix.contact.promo }}" in
-            "300_RUB")  ORDER="1500 руб." ;;
-            "9_AZN")    ORDER="45 AZN" ;;
-            "1800_AMD")  ORDER="9000 AMD" ;;
-            "10_BYN")    ORDER="50 BYN" ;;
-            "10_GEL")    ORDER="50 GEL" ;;
-            "1500_KZT")  ORDER="7500 KZT" ;;
-            "300_KGS")  ORDER="1500 KGS" ;;
-            "40_TJS")   ORDER="200 TJS" ;;
-            *)           ORDER="1500 руб." ;; # Значение по умолчанию
-          esac
-          case "${{ matrix.contact.promo }}" in
-            "300_RUB")   BONUS="300 руб." ;;
-            "9_AZN")     BONUS="9 AZN" ;;
-            "1800_AMD")  BONUS="1800 AMD" ;;
-            "10_BYN")    BONUS="10 BYN" ;;
-            "10_GEL")    BONUS="10 GEL" ;;
-            "1500_KZT")  BONUS="1500 KZT" ;;
-            "300_KGS")   BONUS="300 KGS" ;;
-            "40_TJS")    BONUS="40 TJS" ;;
-            *)           BONUS="300 руб." ;; # Значение по умолчанию
-          esac
+          CAT_END="12 апреля 2026"
       
           # Читаем файл, заменяем поля подстановки на значения из матрицы и сохраняем во временный файл
           sed \
@@ -175,8 +151,6 @@ jobs:
               -e "s|%НАСТАВНИК_ТЕЛЕФОН%|${{ matrix.contact.tutor_phone }}|g" \
               -e "s|%НАСТАВНИК_EMAIL%|${{ matrix.contact.tutor_email }}|g" \
               -e "s|%ДАТА_ОКОНЧАНИЯ_КАТАЛОГА%|${CAT_END}|g" \
-              -e "s|%БОНУС%|$BONUS|g" \
-              -e "s|%ЗАКАЗ%|$ORDER|g" \
               mailing/grill.txt > prepared_email.txt
           cat "prepared_email.txt" 
           
@@ -291,7 +265,7 @@ jobs:
           to: ${{ secrets.TELEGRAM_CHAT_ID }}
           token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           message: |
-            ✉️ Рассылка "стобалльникам", порция: ${{ needs.prepare-slice.outputs.limit }}, начиная с ${{ needs.prepare-slice.outputs.offset }}
+            ✉️ Рассылка VIP-Консультантам про гриль, порция: ${{ needs.prepare-slice.outputs.limit }}, начиная с ${{ needs.prepare-slice.outputs.offset }}
             📅 Раунд рассылки: ${{ needs.prepare-slice.outputs.current_day }}, аккаунт рассылки: ${{ github.event.inputs.mail_acc_number }}
             📊 Статус: ${{ needs.send-emails.result }}
             ✅ Успешно отправлено: ${{ steps.total.outputs.total_success }}
