@@ -15,6 +15,14 @@
       "link": "https://faberlic.com/ru/ru/tag/new?page=0",
       "linkTitle": "Перейти к новинкам",
       "isRead": false
+    },
+    {
+      "id": 5,
+      "title": "Внимание, новая акция",
+      "text": "Участвуйте в акции «Марафон Весеннее преображение вместе с Faberlic»",
+      "link": "https://faberlic.com/index.php?option=com_content&view=category&layout=blog&id=1097",
+      "linkTitle": "Перейти к описанию",
+      "isRead": false
     }
   ],
   "abonents": []
