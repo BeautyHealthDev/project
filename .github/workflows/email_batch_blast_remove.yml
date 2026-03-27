@@ -19,9 +19,10 @@ on:
       idle_periods:
         description: 'Периоды неактивности'
         required: true
-        default: '6'
+        default: '6RU'
         type: choice
         options:
+          - 6RU
           - 6
           - 18
 
@@ -60,17 +61,17 @@ jobs:
           fi
 
           echo "day_diff=$DAY_DIFF" >> $GITHUB_OUTPUT
-          echo "offset=$(( DAY_DIFF * 250 ))" >> $GITHUB_OUTPUT
+          echo "offset=$(( DAY_DIFF * 200 ))" >> $GITHUB_OUTPUT
 
       - name: Slice Contacts
         id: set-matrix
         env:
-          # Если inputs.idle_periods существует и не пуст, берем его. Иначе '6'
-          IDLE_PERIODS: ${{ inputs.idle_periods || '6' }}
+          # Если inputs.idle_periods существует и не пуст, берем его. Иначе '6RU'
+          IDLE_PERIODS: ${{ inputs.idle_periods || '6RU' }}
         run: |
           # Базовые параметры
           OFFSET=${{ steps.calc.outputs.offset }}
-          LIMIT=250
+          LIMIT=200
           FORCE_CONS="${{ github.event.inputs.force_cons_number }}"
           FILE="mailing/contacts_remove${IDLE_PERIODS}.json"
 
@@ -141,7 +142,7 @@ jobs:
       
       - name: Prepare Template for ${{ matrix.contact.name }}
         env:
-          IDLE_PERIODS: ${{ inputs.idle_periods || '6' }}
+          IDLE_PERIODS: ${{ inputs.idle_periods || '6RU' }}
         id: prepare_template
         run: |
           # ДАТА_ОКОНЧАНИЯ_КАТАЛОГА
@@ -174,7 +175,7 @@ jobs:
           # Динамически формируем имя секрета: MAIL_USERNAME + номер
           username: ${{ secrets[format('MAIL_USERNAME{0}', github.event.inputs.mail_acc_number)] }}
           password: ${{ secrets[format('MAIL_PASSWORD{0}', github.event.inputs.mail_acc_number)] }}
-          subject: "Ваш аккаунт в Faberlic скоро будет удален"
+          subject: "${{ matrix.contact.firstname }}, Ваш аккаунт в Faberlic скоро будет удален"
           to: ${{ matrix.contact.email }}
           from: "Команда проекта Faberlic <${{ secrets[format('MAIL_USERNAME{0}', github.event.inputs.mail_acc_number)] }}>"
           # Отправляем уже подготовленный временный файл
