@@ -64,8 +64,17 @@ jobs:
           
           # 1. Общее количество
           TOTAL=$(jq '. | length' $FILE)
+          echo "Всего: $TOTAL"
           
-          # 2. Сводная таблица по наставникам
+          # Генерируем данные с разделителем
+          TABLE_LIST=$(jq -r '
+            "ИД\tИмя\tЛО",
+            "--------------------------------------------------",
+            (.[] | "\(.cons_number)\t\(.name)\t\(.pv)")
+          ' $FILE)
+          echo "$TABLE_LIST"
+          
+          # Сводная таблица по наставникам
           TABLE_TUTOR=$(jq -r '
             [ group_by(.tutor_name)[] | {t: .[0].tutor_name, c: length} ] | sort_by(.c) | reverse 
             | . as $items
@@ -91,9 +100,11 @@ jobs:
           # Безопасная запись многострочного вывода
           echo "total=$TOTAL" >> $GITHUB_OUTPUT
           echo "table<<EOF" >> $GITHUB_OUTPUT
-          echo "По количеству ушедших:" >> $GITHUB_OUTPUT
+          echo "**Общий список:**" >> $GITHUB_OUTPUT
+          echo "${TABLE_LIST:-Нет данных по ушедшим}" >> $GITHUB_OUTPUT
+          echo "**По количеству ушедших:**" >> $GITHUB_OUTPUT
           echo "${TABLE_TUTOR:-Нет данных по наставникам}" >> $GITHUB_OUTPUT
-          echo "По личному объему на 02 апреля:" >> $GITHUB_OUTPUT
+          echo "**По личному объему на 02 апреля:**" >> $GITHUB_OUTPUT
           echo "${TABLE_PV:-Нет данных по наставникам}" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
@@ -104,6 +115,5 @@ jobs:
           token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           format: markdown
           message: |
-            **Всего ушло в Avon: ${{ steps.report.outputs.total }} **
-            📊 **Распределение по наставникам:**
+            📊 **Всего ушло в Avon: ${{ steps.report.outputs.total }} **
             ${{ steps.report.outputs.table }}
