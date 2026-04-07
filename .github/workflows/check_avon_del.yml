@@ -38,7 +38,7 @@ jobs:
           
           # Запускаем трансформацию с параметрами
           # Пример для xsltproc
-          xsltproc --stringparam allowedNumbers "$DIFF_NUMBERS" mailing/contacts_avon_del_ConsultantTreeMLM.xsl mailing/ConsultantTreeMLM_04_02_start_avon.xml > contacts_avon_pv.json
+          xsltproc --stringparam allowedNumbers "$DIFF_NUMBERS" mailing/contacts_avon_del_ConsultantTreeMLM.xsl mailing/ConsultantTreeMLM_avon_start.xml > contacts_avon_pv.json
 
           # Считаем элементы и выводим в консоль
           COUNT=$(jq '. | length' contacts_avon_pv.json)
