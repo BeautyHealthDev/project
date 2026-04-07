@@ -32,7 +32,15 @@ jobs:
           # Сохраняем результат в переменную окружения или файл
           DIFF_NUMBERS=$(jq -s 'map([ .. | objects | select(has("cons_number")) | {cons_number} ]) | .[1] - .[0]
           ' contacts_avon.json mailing/contacts_avon_start.json)
+          # Сохраняем результат в переменную окружения или файл
+          DIFF_NUMBERS=$(jq -s 'map([ .. | objects | select(has("cons_number")) | {cons_number} ]) | .[1] - .[0]' contacts_avon.json  contacts_avon_start.json  > contacts_avon_numbers.json
+            jq '. | length' contacts_avon_numbers.json
+            jq -r '[.[].cons_number] | " " + join(" ") + " "' contacts_avon_numbers.json
+          )
           
+          echo $DIFF_NUMBERS
+          # Выведет: " 745508894 745709506 "
+
           echo "ИД ушедших консультантов: $DIFF_NUMBERS"
           
           # Запускаем трансформацию с параметрами
