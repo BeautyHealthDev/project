@@ -29,18 +29,15 @@ jobs:
         run: |
           # Запускаем трансформацию для определения нового списка контактов
           xsltproc mailing/contacts_avon_ConsultantTreeMLM.xsl mailing/ConsultantTreeMLM_JULIA.xml > contacts_avon.json
-          # Сохраняем результат в переменную окружения или файл
-          DIFF_NUMBERS=$(jq -s 'map([ .. | objects | select(has("cons_number")) | {cons_number} ]) | .[1] - .[0]
-          ' contacts_avon.json mailing/contacts_avon_start.json)
-          # Сохраняем результат в переменную окружения или файл
-          DIFF_NUMBERS=$(jq -s 'map([ .. | objects | select(has("cons_number")) | {cons_number} ]) | .[1] - .[0]' contacts_avon.json  contacts_avon_start.json  > contacts_avon_numbers.json
-            jq '. | length' contacts_avon_numbers.json
-            jq -r '[.[].cons_number] | " " + join(" ") + " "' contacts_avon_numbers.json
-          )
+          # Вычисляем разницу и сохраняем в переменную JSON-массив
+          DIFF_JSON=$(jq -s 'map([ .. | objects | select(has("cons_number")) | {cons_number} ]) | .[1] - .[0]' contacts_avon.json mailing/contacts_avon_start.json)
           
-          echo $DIFF_NUMBERS
-          # Выведет: " 745508894 745709506 "
-
+          # Считаем длину прямо из переменной
+          COUNT=$(echo "$DIFF_JSON" | jq '. | length')
+          echo "Количество ушедших консультантов: $COUNT"
+      
+          # 3. Формируем строку номеров
+          DIFF_NUMBERS=$(echo "$DIFF_JSON" | jq -r '[.[].cons_number] | " " + join(" ") + " "')
           echo "ИД ушедших консультантов: $DIFF_NUMBERS"
           
           # Запускаем трансформацию с параметрами
