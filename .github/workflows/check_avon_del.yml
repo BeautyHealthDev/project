@@ -1,0 +1,54 @@
+name: Check consultants moved to Avon
+
+on:
+  push:
+    paths:
+      - 'mailing/ConsultantTreeMLM*.xml'
+  workflow_dispatch:
+
+jobs:
+  build-contacts-list:
+    runs-on: ubuntu-latest
+    outputs:
+      # Прокидываем output шага на уровень всей джобы
+      file_name: "contacts_avon_pv.json" # Передаем имя файла
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true # Активирует Node.js 24 для всех JS-действий в этом задании    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Обязательно: выкачиваем историю, чтобы сравнить коммиты
+
+      - name: Install xsltproc
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xsltproc
+          
+      - name: Transform XML to JSON
+        run: |
+          # Запускаем трансформацию для определения нового списка контактов
+          xsltproc mailing/contacts_avon_ConsultantTreeMLM.xsl mailing/ConsultantTreeMLM_JULIA.xml > contacts_avon.json
+          # Сохраняем результат в переменную окружения или файл
+          DIFF_NUMBERS=$(jq -s -r '
+            (.[1] - .[0]) | map(.. | .cons_number? // empty) | " " + join(" ") + " "
+          ' contacts_avon.json mailing/contacts_avon_start.json)
+          
+          echo "ИД ушедших консультантов: $DIFF_NUMBERS"
+          
+          # Запускаем трансформацию с параметрами
+          # Пример для xsltproc
+          xsltproc --stringparam allowedNumbers "$DIFF_NUMBERS" mailing/contacts_avon_del_ConsultantTreeMLM.xsl mailing/ConsultantTreeMLM_04_02_start_avon.xml > contacts_avon_pv.json
+
+          # Считаем элементы и выводим в консоль
+          COUNT=$(jq '. | length' contacts_avon_pv.json)
+          echo "Количество элементов в файле: $COUNT"
+          # Вывод результата в лог для проверки
+          echo "Список ушедших консультантов:"
+          cat contacts_avon_pv.json
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mail-contacts
+          path: *.json
