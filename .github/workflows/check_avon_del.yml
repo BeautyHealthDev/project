@@ -30,8 +30,7 @@ jobs:
           # Запускаем трансформацию для определения нового списка контактов
           xsltproc mailing/contacts_avon_ConsultantTreeMLM.xsl mailing/ConsultantTreeMLM_JULIA.xml > contacts_avon.json
           # Сохраняем результат в переменную окружения или файл
-          DIFF_NUMBERS=$(jq -s -r '
-            (.[1] - .[0]) | map(.. | .cons_number? // empty) | " " + join(" ") + " "
+          DIFF_NUMBERS=$(jq -s 'map([ .. | objects | select(has("cons_number")) | {cons_number} ]) | .[1] - .[0]
           ' contacts_avon.json mailing/contacts_avon_start.json)
           
           echo "ИД ушедших консультантов: $DIFF_NUMBERS"
@@ -52,3 +51,54 @@ jobs:
         with:
           name: mail-contacts
           path: contacts_avon_pv.json
+          
+      - name: Generate Summary Report
+        id: report
+        run: |
+          FILE="contacts_avon_pv.json"
+          
+          # 1. Общее количество
+          TOTAL=$(jq '. | length' $FILE)
+          
+          # 2. Сводная таблица по наставникам
+          TABLE_TUTOR=$(jq -r '
+            [ group_by(.tutor_name)[] | {t: .[0].tutor_name, c: length} ] | sort_by(.c) | reverse 
+            | . as $items
+            | ($items[] | "\(.t): \(.c)"), 
+              "ИТОГО: \( [ $items[].c ] | add )"
+          ' $FILE)
+          echo "$TABLE_TUTOR"
+
+          TABLE_PV=$(jq -r '
+            [ 
+              group_by(.tutor_name)[] | {
+                t: .[0].tutor_name, 
+                s: (map(.pv | tonumber) | add) 
+              } 
+            ] 
+            | sort_by(.s) | reverse 
+            | . as $items
+            | ($items[] | "\(.t): \(.s)"), 
+              "ИТОГО: \( [ $items[].s ] | add )"
+          ' $FILE)
+          echo "$TABLE"
+          # Формируем параметры для текста в Telegram
+          # Безопасная запись многострочного вывода
+          echo "total=$TOTAL" >> $GITHUB_OUTPUT
+          echo "table<<EOF" >> $GITHUB_OUTPUT
+          echo "По количеству ушедших:" >> $GITHUB_OUTPUT
+          echo "${TABLE_TUTOR:-Нет данных по наставникам}" >> $GITHUB_OUTPUT
+          echo "По личному объему на 02 апреля:" >> $GITHUB_OUTPUT
+          echo "${TABLE_PV:-Нет данных по наставникам}" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Send Telegram
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_CHAT_ID }}
+          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          format: markdown
+          message: |
+            **Всего ушло в Avon: ${{ steps.report.outputs.total }} **
+            📊 **Распределение по наставникам:**
+            ${{ steps.report.outputs.table }}
