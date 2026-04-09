@@ -1,4 +1,4 @@
-name: Green Sequential Blast
+name: Forgotten Basket Sequential Blast
 
 on:
   # schedule:
@@ -70,7 +70,7 @@ jobs:
           OFFSET=${{ steps.calc.outputs.offset }}
           LIMIT=${{ steps.calc.outputs.limit }}
           FORCE_CONS="${{ github.event.inputs.force_cons_number }}"
-          FILE="mailing/contacts_green.json"
+          FILE="mailing/contacts_basket.json"
 
           # 1. Исправляем опечатки и отсекаем хвосты (sed)
           sed -E -e 's|(@[a-zA-Z0-9.-]+\.com)[^"]*|\1|g' \
@@ -151,7 +151,7 @@ jobs:
               -e "s|%НАСТАВНИК_ТЕЛЕФОН%|${{ matrix.contact.tutor_phone }}|g" \
               -e "s|%НАСТАВНИК_EMAIL%|${{ matrix.contact.tutor_email }}|g" \
               -e "s|%ДАТА_ОКОНЧАНИЯ_КАТАЛОГА%|${CAT_END}|g" \
-              mailing/green.txt > prepared_email.txt
+              mailing/basket.txt > prepared_email.txt
           cat "prepared_email.txt" 
           
       - name: Send Mail
