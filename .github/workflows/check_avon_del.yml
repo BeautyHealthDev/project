@@ -100,12 +100,8 @@ jobs:
           # Безопасная запись многострочного вывода
           echo "total=$TOTAL" >> $GITHUB_OUTPUT
           echo "table<<EOF" >> $GITHUB_OUTPUT
-          echo "**Общий список:**" >> $GITHUB_OUTPUT
-          echo "${TABLE_LIST:-Нет данных по ушедшим}" >> $GITHUB_OUTPUT
           echo "**По количеству ушедших:**" >> $GITHUB_OUTPUT
           echo "${TABLE_TUTOR:-Нет данных по наставникам}" >> $GITHUB_OUTPUT
-          echo "**По личному объему на 02 апреля:**" >> $GITHUB_OUTPUT
-          echo "${TABLE_PV:-Нет данных по наставникам}" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Send Telegram
