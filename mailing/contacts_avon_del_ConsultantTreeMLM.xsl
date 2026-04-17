@@ -13,7 +13,9 @@
 [
     <!-- Универсальный фильтр: ищет номер в строке-параметре -->
     <xsl:for-each select="r:Report/r:table1/r:Detail_Collection/r:Detail[
-        contains($allowedNumbers, concat(' ', @textbox18, ' '))
+        contains($allowedNumbers, concat(' ', @textbox18, ' ')) and
+	(r:Group1_Collection/r:Group1/@Textbox1255 != 'Уд6') and
+	(r:Group1_Collection/r:Group1/@Textbox1255 != 'Уд18')
     ]">
          <xsl:variable name="parentId" select="string(@NNUMBERPARENT)" />
          <xsl:variable name="tutor" select="//r:Detail[string(@textbox18) = $parentId]" />                           
