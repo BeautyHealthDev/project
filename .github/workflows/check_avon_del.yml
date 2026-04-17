@@ -29,38 +29,43 @@ jobs:
         run: |
           # Запускаем трансформацию для определения нового списка контактов
           xsltproc mailing/contacts_avon_ConsultantTreeMLM.xsl mailing/ConsultantTreeMLM_JULIA.xml > contacts_avon.json
+          
           # Вычисляем разницу и сохраняем в переменную JSON-массив
           DIFF_JSON=$(jq -s 'map([ .. | objects | select(has("cons_number")) | {cons_number} ]) | .[1] - .[0]' contacts_avon.json mailing/contacts_avon_start.json)
           
           # Считаем длину прямо из переменной
           COUNT=$(echo "$DIFF_JSON" | jq '. | length')
-          echo "Количество ушедших консультантов: $COUNT"
+          echo "Количество не найденных консультантов: $COUNT"
       
           # 3. Формируем строку номеров
           DIFF_NUMBERS=$(echo "$DIFF_JSON" | jq -r '[.[].cons_number] | " " + join(" ") + " "')
-          echo "ИД ушедших консультантов: $DIFF_NUMBERS"
+          echo "ИД не найденных консультантов: $DIFF_NUMBERS"
           
-          # Запускаем трансформацию с параметрами
-          # Пример для xsltproc
+          # Запускаем трансформацию с параметрами на начальном списке
           xsltproc --stringparam allowedNumbers "$DIFF_NUMBERS" mailing/contacts_avon_del_ConsultantTreeMLM.xsl mailing/ConsultantTreeMLM_avon_start.xml > contacts_avon_pv.json
 
+          # Запускаем трансформацию с параметрами на текущем списке
+          xsltproc --stringparam allowedNumbers "$DIFF_NUMBERS" mailing/contacts_avon_del_ConsultantTreeMLM.xsl mailing/ConsultantTreeMLM_JULIA.xml > contacts_avon_pv_now.json
+          
+          jq -s 'map([ .. | objects | select(has("cons_number")) | {cons_number} ]) | .[1] - .[0]' contacts_avon_pv_now.json contacts_avon_pv.json > contacts_avon_pv_delta.json 
+          
           # Считаем элементы и выводим в консоль
-          COUNT=$(jq '. | length' contacts_avon_pv.json)
+          COUNT=$(jq '. | length' contacts_avon_pv_delta.json)
           echo "Количество элементов в файле: $COUNT"
           # Вывод результата в лог для проверки
           echo "Список ушедших консультантов:"
-          cat contacts_avon_pv.json
+          cat contacts_avon_pv_delta.json
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: mail-contacts
-          path: contacts_avon_pv.json
+          path: contacts_avon_*.json
           
       - name: Generate Summary Report
         id: report
         run: |
-          FILE="contacts_avon_pv.json"
+          FILE="contacts_avon_pv_delta.json"
           
           # 1. Общее количество
           TOTAL=$(jq '. | length' $FILE)
