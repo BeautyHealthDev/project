@@ -37,29 +37,19 @@ jobs:
           COUNT=$(echo "$DIFF_JSON" | jq '. | length')
           echo "Количество не найденных консультантов: $COUNT"
       
-          # 3. Формируем строку номеров
+          # Формируем строку номеров
           DIFF_NUMBERS=$(echo "$DIFF_JSON" | jq -r '[.[].cons_number] | " " + join(" ") + " "')
           echo "ИД не найденных консультантов: $DIFF_NUMBERS"
           
           # Запускаем трансформацию с параметрами на начальном списке
           xsltproc --stringparam allowedNumbers "$DIFF_NUMBERS" mailing/contacts_avon_del_ConsultantTreeMLM.xsl mailing/ConsultantTreeMLM_avon_start.xml > contacts_avon_pv.json
-          echo "На начало перехода отсутствуют:"
-          cat contacts_avon_pv.json
 
-          # Запускаем трансформацию с параметрами на текущем списке
-          # Ищем людей, у которых убрали букву Д
-          xsltproc --stringparam allowedNumbers "$DIFF_NUMBERS" mailing/contacts_avon_del_ConsultantTreeMLM.xsl mailing/ConsultantTreeMLM_JULIA.xml > contacts_avon_pv_now.json
-          echo "Сейчас отсутствуют:"
-          cat contacts_avon_pv_now.json
-          
-          jq -s 'map([ .. | objects | select(has("cons_number")) | {cons_number} ]) | .[1] - .[0]' contacts_avon_pv_now.json contacts_avon_pv.json > contacts_avon_pv_delta.json 
-          
           # Считаем элементы и выводим в консоль
-          COUNT=$(jq '. | length' contacts_avon_pv_delta.json)
+          COUNT=$(jq '. | length' contacts_avon_pv.json)
           echo "Количество элементов в файле: $COUNT"
           # Вывод результата в лог для проверки
           echo "Список ушедших консультантов:"
-          cat contacts_avon_pv_delta.json
+          cat contacts_avon_pv.json
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -70,7 +60,7 @@ jobs:
       - name: Generate Summary Report
         id: report
         run: |
-          FILE="contacts_avon_pv_delta.json"
+          FILE="contacts_avon_pv.json"
           
           # 1. Общее количество
           TOTAL=$(jq '. | length' $FILE)
