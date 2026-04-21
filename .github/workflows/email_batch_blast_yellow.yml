@@ -20,13 +20,13 @@ on:
         description: 'По сколько писем за 1 раз отправлять'
         required: true
         type: number
-        default: 100
+        default: 200
 
 jobs:
   prepare-slice:
     runs-on: ubuntu-latest
     env:
-      MAILING_START_DATE: '2026-02-18'
+      MAILING_START_DATE: '2026-04-21'
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
       current_day: ${{ steps.calc.outputs.day_diff }}
@@ -137,7 +137,7 @@ jobs:
         id: prepare_template
         run: |
           # ДАТА_ОКОНЧАНИЯ_КАТАЛОГА
-          CAT_END="01 марта 2026"
+          CAT_END="03 мая 2026"
       
           # Читаем файл, заменяем поля подстановки на значения из матрицы и сохраняем во временный файл
           sed \
