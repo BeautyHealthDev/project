@@ -3,7 +3,7 @@ name: Check consultants moved to Avon
 on:
   push:
     paths:
-      - 'mailing/ConsultantTreeMLM*.xml'
+#      - 'mailing/ConsultantTreeMLM*.xml'
   workflow_dispatch:
 
 jobs:
