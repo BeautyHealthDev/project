@@ -1,0 +1,77 @@
+name: Check consultants marked to be removed
+
+on:
+  push:
+    paths:
+      - 'mailing/ConsultantTreeMLM*.xml'
+  workflow_dispatch:
+
+jobs:
+  build-contacts-list:
+    runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true # Активирует Node.js 24 для всех JS-действий в этом задании    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Обязательно: выкачиваем историю, чтобы сравнить коммиты
+
+      - name: Install xsltproc
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xsltproc
+          
+      - name: Transform XML to JSON
+        run: |
+          # Запускаем трансформацию для определения списка кандидатов на удаление
+          xsltproc mailing/contacts_remove6_18_ConsultantTreeMLM.xsl mailing/ConsultantTreeMLM_JULIA.xml > contacts_remove6_18.json
+          
+          # Считаем элементы и выводим в консоль
+          COUNT=$(jq '. | length' contacts_remove6_18.json)
+          echo "Количество кандидатов на удаление: $COUNT"
+          # Вывод результата в лог для проверки
+#          echo "Список кандидатов на удаление:"
+#          cat contacts_remove6_18.json
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mail-contacts
+          path: contacts_remove6_18.json
+          
+      - name: Generate Summary Report
+        id: report
+        run: |
+          FILE="contacts_remove6_18.json"
+          
+          # 1. Общее количество
+          TOTAL=$(jq '. | length' $FILE)
+          echo "Всего: $TOTAL"
+          
+          # Сводная таблица по наставникам
+          TABLE_TUTOR=$(jq -r '
+            [ group_by(.tutor_name)[] | {t: .[0].tutor_name, c: length} ] | sort_by(.c) | reverse 
+            | . as $items
+            | ($items[] | "\(.t): \(.c)"), 
+              "ИТОГО: \( [ $items[].c ] | add )"
+          ' $FILE)
+          echo "$TABLE_TUTOR"
+
+          # Формируем параметры для текста в Telegram
+          # Безопасная запись многострочного вывода
+          echo "total=$TOTAL" >> $GITHUB_OUTPUT
+          echo "table<<EOF" >> $GITHUB_OUTPUT
+          echo "**По количеству кандидатов на удаление:**" >> $GITHUB_OUTPUT
+          echo "${TABLE_TUTOR:-Нет данных по наставникам}" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Send Telegram
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_CHAT_ID }}
+          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          format: markdown
+          message: |
+            📊 **Всего кандидатов на удаление: ${{ steps.report.outputs.total }} **
+            ${{ steps.report.outputs.table }}
