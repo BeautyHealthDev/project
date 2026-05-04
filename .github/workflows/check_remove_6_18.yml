@@ -53,7 +53,7 @@ jobs:
           TABLE_TUTOR=$(jq -r '
             [ group_by(.tutor_name)[] | {t: .[0].tutor_name, c: length} ] | sort_by(.c) | reverse 
             | . as $items
-            | ($items[] | "\(.t): \(.c)"), 
+            | ($items[] | select(.c > 5) | "\(.t): \(.c) "), 
               "ИТОГО: \( [ $items[].c ] | add )"
           ' $FILE)
           echo "$TABLE_TUTOR"
