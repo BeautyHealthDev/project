@@ -167,7 +167,7 @@ jobs:
           # Динамически формируем имя секрета: MAIL_USERNAME + номер
           username: ${{ secrets[format('MAIL_USERNAME{0}', github.event.inputs.mail_acc_number)] }}
           password: ${{ secrets[format('MAIL_PASSWORD{0}', github.event.inputs.mail_acc_number)] }}
-          subject: "Вам подарок от Faberlic, ${{ matrix.contact.firstname }}!"
+          subject: "${{ matrix.contact.firstname }}, используйте купоны на скидку 50% от Faberlic"
           to: ${{ matrix.contact.email }}
           from: "Команда проекта Faberlic <${{ secrets[format('MAIL_USERNAME{0}', github.event.inputs.mail_acc_number)] }}>"
           # Отправляем уже подготовленный временный файл
