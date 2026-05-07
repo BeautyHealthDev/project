@@ -26,6 +26,7 @@ jobs:
   prepare-slice:
     runs-on: ubuntu-latest
     env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
       MAILING_START_DATE: '2026-05-05'
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
@@ -35,6 +36,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
 
       - name: Calculate Current Day from Start
         id: calc
