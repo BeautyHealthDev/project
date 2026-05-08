@@ -1,0 +1,20 @@
+name: Beget SSL Automation
+on:
+  workflow_dispatch:
+
+jobs:
+  manage_ssl:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get Domain ID and Request SSL
+        run: |
+          # 1. Получаем список доменов и находим ID для faberlic-mo.ru
+          DOMAIN_INFO=$(curl -s "https://beget.com{{ secrets.BEGET_LOGIN }}&passwd=${{ secrets.BEGET_API_PASS }}&output_format=json")
+          DOMAIN_ID=$(echo $DOMAIN_INFO | jq -r '.result[] | select(.fqdn=="faberlic-mo.ru") | .id')
+          echo "Domain Info for faberlic-mo.ru is: $DOMAIN_INFO"
+          echo "Domain ID for faberlic-mo.ru is: $DOMAIN_ID"
+          
+          # 2. Запрашиваем выпуск Let's Encrypt
+          curl -X POST "https://beget.com{{ secrets.BEGET_LOGIN }}&passwd=${{ secrets.BEGET_API_PASS }}&output_format=json" \
+          -H "Content-Type: application/json" \
+          -d "{\"domain_id\": $DOMAIN_ID, \"ssl_type\": \"lets_encrypt\"}"
