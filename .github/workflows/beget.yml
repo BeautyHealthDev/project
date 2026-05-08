@@ -9,7 +9,7 @@ jobs:
       - name: Get Domain ID and Request SSL
         run: |
           # 1. Получаем список доменов и находим ID для faberlic-mo.ru
-          DOMAIN_INFO=$(curl -s "https://api.beget.com/api/user/getAccountInfo?login={{ secrets.BEGET_LOGIN }}&passwd=${{ secrets.BEGET_API_PASS }}&output_format=json")
+          DOMAIN_INFO=$(curl -s "https://api.beget.com/api/domain/getList?login={{ secrets.BEGET_LOGIN }}&passwd=${{ secrets.BEGET_API_PASS }}&output_format=json")
           echo "Domain Info for faberlic-mo.ru is: $DOMAIN_INFO"
           DOMAIN_ID=$(echo $DOMAIN_INFO | jq -r '.result[] | select(.fqdn=="faberlic-mo.ru") | .id')
           echo "Domain ID for faberlic-mo.ru is: $DOMAIN_ID"
