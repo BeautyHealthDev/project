@@ -15,6 +15,6 @@ jobs:
           echo "Domain ID for faberlic-mo.ru is: $DOMAIN_ID"
           
           # 2. Запрашиваем выпуск Let's Encrypt
-          curl -X POST "https://beget.com{{ secrets.BEGET_LOGIN }}&passwd=${{ secrets.BEGET_API_PASS }}&output_format=json" \
-          -H "Content-Type: application/json" \
-          -d "{\"domain_id\": $DOMAIN_ID, \"ssl_type\": \"lets_encrypt\"}"
+          # curl -X POST "https://beget.com{{ secrets.BEGET_LOGIN }}&passwd=${{ secrets.BEGET_API_PASS }}&output_format=json" \
+          # -H "Content-Type: application/json" \
+          # -d "{\"domain_id\": $DOMAIN_ID, \"ssl_type\": \"lets_encrypt\"}"
