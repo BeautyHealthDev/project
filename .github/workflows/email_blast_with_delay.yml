@@ -121,7 +121,9 @@ jobs:
     needs: prepare
     runs-on: ubuntu-latest
     env:
-      MAIL_SUBJECT: 'Письмо от Команды Faberlic' 
+      MAIL_SUBJECT: 'Письмо от Команды Faberlic'
+      USER: ${{ secrets['MAIL_USERNAME_FMO'] }}
+      PASSWORD: ${{ secrets['MAIL_PASSWORD_FMO'] }}
     strategy:
       max-parallel: 1 
       matrix:
@@ -208,11 +210,6 @@ jobs:
           RESULT=$(( (DAY % 2) + 3 ))
           echo "result=$RESULT" >> $GITHUB_OUTPUT
       
-      - name: Check credentials
-        run:  |
-          USER=${{ secrets['MAIL_USERNAME_FMO'] }}
-          PASSWORD=${{ secrets['MAIL_PASSWORD_FMO'] }}
-
       - name: Send mail to ${{ matrix.contact.email }}
         uses: dawidd6/action-send-mail@v3
         with:
@@ -222,8 +219,8 @@ jobs:
           # Динамически формируем имя секрета: MAIL_USERNAME + номер
           # username: ${{ secrets[format('MAIL_USERNAME{0}', steps.check_day.outputs.result)] }}
           # password: ${{ secrets[format('MAIL_PASSWORD{0}', steps.check_day.outputs.result)] }}
-          username: $USER
-          password: $PASSWORD
+          username: ${{ env.USER }}
+          password: ${{ env.PASSWORD }}
           subject: ${{ env.MAIL_SUBJECT }}
           to: ${{ matrix.contact.email }}
           from: "Команда проекта Faberlic МО<$USER>"
