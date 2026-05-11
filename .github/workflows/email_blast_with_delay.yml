@@ -214,7 +214,8 @@ jobs:
       - name: Send mail to ${{ matrix.contact.email }}
         uses: dawidd6/action-send-mail@v3
         with:
-          server_address: smtp.gmail.com
+          # server_address: smtp.gmail.com
+          server_address: smtp.yandex.ru
           server_port: 465
           # Динамически формируем имя секрета: MAIL_USERNAME + номер
           # username: ${{ secrets[format('MAIL_USERNAME{0}', steps.check_day.outputs.result)] }}
