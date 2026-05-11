@@ -217,12 +217,12 @@ jobs:
           server_address: smtp.gmail.com
           server_port: 465
           # Динамически формируем имя секрета: MAIL_USERNAME + номер
-          username: ${{ secrets[format('MAIL_USERNAME{0}', steps.check_day.outputs.result)] }}
-          password: ${{ secrets[format('MAIL_PASSWORD{0}', steps.check_day.outputs.result)] }}
-          # username: ${{ secrets['MAIL_USERNAME4'] }}
-          # password: ${{ secrets['MAIL_PASSWORD4'] }}
+          # username: ${{ secrets[format('MAIL_USERNAME{0}', steps.check_day.outputs.result)] }}
+          # password: ${{ secrets[format('MAIL_PASSWORD{0}', steps.check_day.outputs.result)] }}
+          username: ${{ secrets['MAIL_USERNAME_737450271'] }}
+          password: ${{ secrets['MAIL_PASSWORD_FMO'] }}
           subject: ${{ env.MAIL_SUBJECT }}
           to: ${{ matrix.contact.email }}
-          from: "Команда проекта Faberlic <${{ secrets[format('MAIL_USERNAME{0}', steps.check_day.outputs.result)] }}>"
+          from: "Команда проекта Faberlic МО<${{ secrets[format('MAIL_USERNAME{0}', steps.check_day.outputs.result)] }}>"
           # Отправляем уже подготовленный временный файл
           body: file://prepared_email.txt
