@@ -223,7 +223,7 @@ jobs:
           password: ${{ env.PASSWORD }}
           subject: ${{ env.MAIL_SUBJECT }}
           to: ${{ matrix.contact.email }}
-          bcc: "sent@faberlic-mo.ru"
+          bcc: ${{ env.USER }}
           from: "Команда проекта Faberlic Мастер Образа <${{ env.USER }}>"
           # Отправляем уже подготовленный временный файл
           body: file://prepared_email.txt
