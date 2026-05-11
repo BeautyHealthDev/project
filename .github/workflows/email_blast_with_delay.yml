@@ -210,7 +210,7 @@ jobs:
       
       - name: Check credentials
         run:  |
-          USER=${{ secrets['MAIL_USERNAME_737450271'] }}
+          USER=${{ secrets['MAIL_USERNAME_FMO'] }}
           PASSWORD=${{ secrets['MAIL_PASSWORD_FMO'] }}
 
       - name: Send mail to ${{ matrix.contact.email }}
