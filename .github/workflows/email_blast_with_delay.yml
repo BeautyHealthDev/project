@@ -208,8 +208,10 @@ jobs:
           RESULT=$(( (DAY % 2) + 3 ))
           echo "result=$RESULT" >> $GITHUB_OUTPUT
       
-      - name: Use check even/odd day result
-        run: echo "Будет использован для рассылки аккаунт ${{ format('MAIL_USERNAME{0}', steps.check_day.outputs.result) }}"
+      - name: Check credentials
+        run:  |
+          USER=${{ secrets['MAIL_USERNAME_737450271'] }}
+          PASSWORD=${{ secrets['MAIL_PASSWORD_FMO'] }}
 
       - name: Send mail to ${{ matrix.contact.email }}
         uses: dawidd6/action-send-mail@v3
@@ -220,10 +222,10 @@ jobs:
           # Динамически формируем имя секрета: MAIL_USERNAME + номер
           # username: ${{ secrets[format('MAIL_USERNAME{0}', steps.check_day.outputs.result)] }}
           # password: ${{ secrets[format('MAIL_PASSWORD{0}', steps.check_day.outputs.result)] }}
-          username: ${{ secrets['MAIL_USERNAME_737450271'] }}
-          password: ${{ secrets['MAIL_PASSWORD_FMO'] }}
+          username: $USER
+          password: $PASSWORD
           subject: ${{ env.MAIL_SUBJECT }}
           to: ${{ matrix.contact.email }}
-          from: "Команда проекта Faberlic МО<${{ secrets[format('MAIL_USERNAME{0}', steps.check_day.outputs.result)] }}>"
+          from: "Команда проекта Faberlic МО<$USER>"
           # Отправляем уже подготовленный временный файл
           body: file://prepared_email.txt
