@@ -122,8 +122,10 @@ jobs:
     runs-on: ubuntu-latest
     env:
       MAIL_SUBJECT: 'Письмо от Команды Faberlic'
-      USER: ${{ secrets['MAIL_USERNAME_FMO'] }}
-      PASSWORD: ${{ secrets['MAIL_PASSWORD_FMO'] }}
+      # USER: ${{ secrets['MAIL_USERNAME_FMO'] }}
+      # PASSWORD: ${{ secrets['MAIL_PASSWORD_FMO'] }}
+      USER: ${{ secrets['MAIL_USERNAME'] }}
+      PASSWORD: ${{ secrets['MAIL_PASSWORD'] }}
     strategy:
       max-parallel: 1 
       matrix:
