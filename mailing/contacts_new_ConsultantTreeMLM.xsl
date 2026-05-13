@@ -9,6 +9,11 @@
     <!-- Объявляем параметры -->
     <xsl:param name="fromDate" />
     <xsl:param name="toDate" />
+
+    <!-- 1. Определяем ключ (индекс) ОДИН РАЗ вне шаблонов -->
+    <!-- Индексируем все Detail по значению их атрибута textbox18 -->
+    <xsl:key name="detail-by-textbox" match="r:Detail" use="string(@textbox18)" />
+
     
     <xsl:template match="/">
 [
@@ -18,7 +23,7 @@
         @SBSENDMAIL = 'Да'
     ]">
         <xsl:variable name="parentId" select="string(@NNUMBERPARENT)" />
-        <xsl:variable name="tutor" select="//r:Detail[string(@textbox18) = $parentId]" />
+        <xsl:variable name="tutor" select="key('detail-by-textbox', $parentId)" />
         {
           "cons_number": "<xsl:value-of select="@textbox18"/>",
           "name": "<xsl:value-of select="@textbox19"/>",

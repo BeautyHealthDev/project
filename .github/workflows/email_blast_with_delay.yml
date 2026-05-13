@@ -122,10 +122,10 @@ jobs:
     runs-on: ubuntu-latest
     env:
       MAIL_SUBJECT: 'Письмо от Команды Faberlic'
-      USER: ${{ secrets['MAIL_USERNAME_FMO'] }}
-      PASSWORD: ${{ secrets['MAIL_PASSWORD_FMO'] }}
-      # USER: ${{ secrets['MAIL_USERNAME'] }}
-      # PASSWORD: ${{ secrets['MAIL_PASSWORD'] }}
+      # USER: ${{ secrets['MAIL_USERNAME_FMO'] }}
+      # PASSWORD: ${{ secrets['MAIL_PASSWORD_FMO'] }}
+      USER: ${{ secrets['MAIL_USERNAME'] }}
+      PASSWORD: ${{ secrets['MAIL_PASSWORD'] }}
     strategy:
       max-parallel: 1 
       matrix:
@@ -215,8 +215,8 @@ jobs:
       - name: Send mail to ${{ matrix.contact.email }}
         uses: dawidd6/action-send-mail@v3
         with:
-          # server_address: smtp.gmail.com
-          server_address: smtp.yandex.ru
+          server_address: smtp.gmail.com
+          # server_address: smtp.yandex.ru
           server_port: 465
           # Динамически формируем имя секрета: MAIL_USERNAME + номер
           # username: ${{ secrets[format('MAIL_USERNAME{0}', steps.check_day.outputs.result)] }}
@@ -225,7 +225,7 @@ jobs:
           password: ${{ env.PASSWORD }}
           subject: ${{ env.MAIL_SUBJECT }}
           to: ${{ matrix.contact.email }}
-          bcc: ${{ env.USER }}
+          # bcc: ${{ env.USER }}
           from: "Команда проекта Faberlic Мастер Образа <${{ env.USER }}>"
           # Отправляем уже подготовленный временный файл
           body: file://prepared_email.txt
