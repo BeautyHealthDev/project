@@ -124,8 +124,8 @@ jobs:
       MAIL_SUBJECT: 'Письмо от Команды Faberlic'
       # USER: ${{ secrets['MAIL_USERNAME_FMO'] }}
       # PASSWORD: ${{ secrets['MAIL_PASSWORD_FMO'] }}
-      USER: ${{ secrets['MAIL_USERNAME'] }}
-      PASSWORD: ${{ secrets['MAIL_PASSWORD'] }}
+      USER: ${{ secrets['MAIL_USERNAME4'] }}
+      PASSWORD: ${{ secrets['MAIL_PASSWORD4'] }}
     strategy:
       max-parallel: 1 
       matrix:
