@@ -9,19 +9,19 @@
       "isRead": false
     },
     {
-      "id": 4,
-      "title": "Новинки весны 2026",
-      "text": "Встречайте новинки весны 2026 по отличным ценам",
-      "link": "https://faberlic.com/ru/ru/tag/new?page=0",
-      "linkTitle": "Перейти к новинкам",
-      "isRead": false
-    },
-    {
       "id": 6,
       "title": "Внимание, новые акции",
       "text": "Каждый каталог - новые акции от Faberlic",
       "link": "https://faberlic.com/ru/ru/promolist",
       "linkTitle": "Перейти к списку акций",
+      "isRead": false
+    },
+    {
+      "id": 7,
+      "title": "Лето здоровья",
+      "text": "Покупайте товары категории 'Продукты для здоровья' и участвуйте в розыгрыше призов",
+      "link": "https://faberlic.com/index.php?option=com_content&view=article&id=237617",
+      "linkTitle": "Перейти к акции",
       "isRead": false
     }
   ],
