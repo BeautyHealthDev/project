@@ -47,15 +47,7 @@ jobs:
           name: mail-contacts
           path: contacts_new_with_dates.json
           
-  upload_to_server:
-    needs: [build-contacts-list]
-    runs-on: ubuntu-latest
-    steps:
-      # 1. Скачиваем файлы репозитория на виртуальную машину GitHub
-      - name: Checkout repository code
-        uses: actions/checkout@v4
-
-      # 2. Скрипт на Python для чтения JSON и отправки POST-запросов
+      # Скрипт на Python для чтения JSON и отправки POST-запросов
       - name: Parse and Send JSON data
         env:
           API_URL: ${{ secrets.DB_API_URL }}
