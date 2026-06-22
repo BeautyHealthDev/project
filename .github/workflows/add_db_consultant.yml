@@ -34,7 +34,7 @@ jobs:
           # Запускаем трансформацию с параметрами
           xsltproc --stringparam fromDate "$YESTERDAY" \
                    --stringparam toDate "$YESTERDAY" \
-                   mailing/contacts_new_ConsultantTreeMLM.xsl mailing/ConsultantTreeMLM_JULIA.xml > contacts_new_with_dates.json
+                   mailing/contacts_new_db_ConsultantTreeMLM.xsl mailing/ConsultantTreeMLM_JULIA.xml > contacts_new_with_dates.json
           # Считаем элементы и выводим в консоль
           COUNT=$(jq '. | length' contacts_new_with_dates.json)
           echo "Количество элементов в файле: $COUNT"
