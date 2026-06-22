@@ -90,19 +90,20 @@ jobs:
           
   # # 2. Вторая джоба: запуск рассылки по условию
   # send-emails:
-    # needs: build-contacts-list
-    # # Условие: запускать только если в первой джобе вернули 'true'
-    # if: needs.build-contacts-list.outputs.should_send == 'true'
-    # uses: ./.github/workflows/email_blast_with_delay.yml
-    # with:
-      # # Используем имя файла, которое передали из первой джобы
-      # contacts_name: ${{ needs.build-contacts-list.outputs.file_name }}
-      # template_name: 'mailing/new.txt'
-      # delay_seconds: '3'
-    # secrets: inherit
+  #   needs: build-contacts-list
+  #   # Условие: запускать только если в первой джобе вернули 'true'
+  #   if: needs.build-contacts-list.outputs.should_send == 'true'
+  #   uses: ./.github/workflows/email_blast_with_delay.yml
+  #   with:
+  #     # Используем имя файла, которое передали из первой джобы
+  #     contacts_name: ${{ needs.build-contacts-list.outputs.file_name }}
+  #     template_name: 'mailing/new.txt'
+  #     delay_seconds: '3'
+  #   secrets: inherit
     
   send-tg-report:
-    needs: [build-contacts-list, send-emails]
+    # needs: [build-contacts-list, send-emails]
+    needs: [build-contacts-list]
     # Запускаем, если файл был найден, даже если рассылка (email) не требуется
     if: needs.build-contacts-list.outputs.file_name != ''
     runs-on: ubuntu-latest
