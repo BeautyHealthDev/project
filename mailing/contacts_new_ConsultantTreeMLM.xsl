@@ -13,7 +13,6 @@
     <!-- 1. Определяем ключ (индекс) ОДИН РАЗ вне шаблонов -->
     <!-- Индексируем все Detail по значению их атрибута textbox18 -->
     <xsl:key name="detail-by-textbox" match="r:Detail" use="string(@textbox18)" />
-
     
     <xsl:template match="/">
 [
@@ -30,8 +29,10 @@
           "lastname": "<xsl:value-of select="@SLASTNAME"/>",
           "firstname": "<xsl:value-of select="@SFIRSTNAME"/>",
           "patronymic": "<xsl:value-of select="@SPATRONYMIC"/>",
-          "regdate": "<xsl:value-of select="translate(substring(@DREGDATE, 1, 10), '-', '.')"/>",
+          "regdate": "<xsl:value-of select="substring(@DREGDATE, 1, 10)"/>",
           "email": "<xsl:value-of select="@textbox109"/>",
+          "phone": "<xsl:value-of select="@textbox111"/>",
+          "tutor_id": "<xsl:value-of select="@NNUMBERPARENT"/>",
           "tutor_name": "<xsl:value-of select="$tutor/@textbox19"/>",
           "tutor_phone": "<xsl:value-of select="$tutor/@textbox111"/>",
           "tutor_email": "<xsl:value-of select="$tutor/@textbox109"/>"
