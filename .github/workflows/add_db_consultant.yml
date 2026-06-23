@@ -81,8 +81,10 @@ jobs:
 
           print(f'Найдено записей для импорта: {len(consultants)}')
 
+          # Перед циклом инициализировать счетчики
           success_count = 0
           error_count = 0
+          exists_count = 0
 
           # Перебираем каждого консультанта в массиве
           for idx, item in enumerate(consultants, 1):
@@ -105,9 +107,6 @@ jobs:
                   },
                   method='POST'
               )
-
-              # Перед циклом инициализировать счетчик
-              exists_count = 0
               try:
                   with urllib.request.urlopen(req) as response:
                       res_body = response.read().decode('utf-8')
@@ -131,6 +130,7 @@ jobs:
 
           print(f'\nИмпорт завершен!')
           print(f'\nУспешно добавлено: {success_count}')
+          print(f'\nПовторов: {exists_count}')
           print(f'\nОшибок: {error_count}')
           
           if error_count > 0:
