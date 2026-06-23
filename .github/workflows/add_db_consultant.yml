@@ -117,21 +117,21 @@ jobs:
                           # Проверяем, вернула ли база -1 (запись уже существует)
                           if res_json.get('inserted_id') == -1:
                               exists_count += 1
-                              print(f"Запись {item['cons_number']} уже существует в базе.")
+                              print(f'Запись {item['cons_number']} уже существует в базе.')
                           else:
                               success_count += 1
-                              print(f"Запись {item['cons_number']} успешно добавлена.")
+                              print(f'Запись {item['cons_number']} успешно добавлена.')
                       else: 
-                          print(f"Ошибка отправки записи {item['cons_number']}: {res_json.get('error')}")
+                          print(f'Ошибка отправки записи {item['cons_number']}: {res_json.get('error')}')
                           error_count += 1
                           
               except Exception as e:
-                  print(f"Сервер вернул ошибку при отправке {item['cons_number']}: {e}")
+                  print(f'Сервер вернул ошибку при отправке {item['cons_number']}: {e}')
                   error_count += 1
 
           print(f'\nИмпорт завершен!')
-          print(f'Успешно добавлено: {success_count}')
-          print(f'Ошибок: {error_count}')
+          print(f'\nУспешно добавлено: {success_count}')
+          print(f'\nОшибок: {error_count}')
           
           if error_count > 0:
               exit(1) # Помечаем шаг как упавший, если были ошибки
