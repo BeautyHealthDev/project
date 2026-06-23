@@ -139,8 +139,8 @@ jobs:
           # Записываем результаты в outputs шага GitHub Actions
           if 'GITHUB_OUTPUT' in os.environ:
               with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
-                  print(f"SUCCESS_COUNT={success_count}", file=fh)
-                  print(f"EXISTS_COUNT={exists_count}", file=fh)
+                  print(f'SUCCESS_COUNT={success_count}', file=fh)
+                  print(f'EXISTS_COUNT={exists_count}', file=fh)
           "
       - name: Generate Summary Report
         id: report
