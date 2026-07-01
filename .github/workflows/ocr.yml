@@ -43,7 +43,7 @@ jobs:
           # done
           
           # Ищем файлы, исключая те, что заканчиваются на _ocr.*
-          find ocr5 -type f \( -name "*.JPG" -o -name "*.jpg" -o -name "*.png" \) ! -name "*_ocr.*" | while read file; do
+          find ocr6 -type f \( -name "*.JPG" -o -name "*.jpg" -o -name "*.png" \) ! -name "*_ocr.*" | while read file; do
             # Проверяем, существует ли уже .txt, чтобы не тратить ресурсы
           if [ ! -f "${file%.*}.txt" ]; then
               echo "Processing: $file"
@@ -57,7 +57,7 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add ocr5/*.txt
-          # git add ocr5/*_ocr.jpg
+          git add ocr6/*.txt
+          # git add ocr6/*_ocr.jpg
           # Коммитим только если есть изменения
           git diff --quiet && git diff --staged --quiet || (git commit -m "Add OCR results" && git push)
