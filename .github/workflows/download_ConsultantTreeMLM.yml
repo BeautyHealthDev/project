@@ -8,7 +8,7 @@ on:
         period:
           description: 'Период'
           required: true
-          default: '09/2026'
+          default: '10/2026'
           type: choice
           options:
             - 01/2026
@@ -21,6 +21,7 @@ on:
             - 08/2026
             - 09/2026
             - 10/2026
+            - 11/2026
         nullsum:
           description: 'Включить неактивных Консультантов'
           default: 'Да'
@@ -98,7 +99,8 @@ jobs:
               inputs.period == '08/2026' && '30000000527' ||
               inputs.period == '09/2026' && '30000000528' ||
               inputs.period == '10/2026' && '30000000529' ||
-              '30000000528'
+              inputs.period == '11/2026' && '30000000530' ||
+              '30000000529'
             }}
           NULLSUM: ${{ contains(inputs.nullsum, 'Нет') && '0' || '1' }}
           OWNSTRUCTURE: ${{ contains(inputs.ownstructure, 'Да') && '1' || '0' }}
