@@ -17,11 +17,11 @@
       "isRead": false
     },
     {
-      "id": 8,
-      "title": "Календарь выгодных покупок",
-      "text": "Будьте в курсе всех выгодных акций и предложений.",
-      "link": "https://faberlic.com/ru/ru/promolist/1001822161468?page=0",
-      "linkTitle": "Перейти к акции",
+      "id": 9,
+      "title": "Встречай эксклюзивные новинки",
+      "text": "Будь в курсе всех выгодных акций и предложений.",
+      "link": "https://faberlic.com/ru/ru/tag/new",
+      "linkTitle": "Смотреть все новинки",
       "isRead": false
     }
   ],
