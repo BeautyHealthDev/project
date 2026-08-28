@@ -11,6 +11,7 @@ jobs:
   build-contacts-list:
     runs-on: ubuntu-latest
     strategy:
+      max-parallel: 1 
       matrix:
         include:
           - country: "Russia"
@@ -57,6 +58,7 @@ jobs:
   send-emails:
     needs: build-contacts-list
     strategy:
+      max-parallel: 1 
       matrix:
         include:
           - country: "Russia"
@@ -78,6 +80,7 @@ jobs:
     needs: [build-contacts-list, send-emails]
     runs-on: ubuntu-latest
     strategy:
+      max-parallel: 1 
       matrix:
         country: ["Russia", "Tajikistan", "Other"]
     steps:
