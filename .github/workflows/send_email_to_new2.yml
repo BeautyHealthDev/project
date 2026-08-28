@@ -3,7 +3,7 @@ name: Version 2 Send E-mails to new consultants
 on:
   push:
     paths:
-      - 'mailing/ConsultantTreeMLM*.xml'
+      - 'mailing/ConsultantTreeMLM_JULIA.xml'
   workflow_dispatch:
 
 jobs:
@@ -41,7 +41,7 @@ jobs:
           
           xsltproc --stringparam fromDate "$YESTERDAY" \
                    --stringparam toDate "$YESTERDAY" \
-                   mailing/${{ matrix.xsl_file }} mailing/ConsultantTreeMLM.xml > contacts_new_with_dates_${{ matrix.country }}.json
+                   mailing/${{ matrix.xsl_file }} mailing/ConsultantTreeMLM_JULIA.xml > contacts_new_with_dates_${{ matrix.country }}.json
           
           echo "Обрабатываем страну: ${{ matrix.country }}"
           COUNT=$(jq '. | length' contacts_new_with_dates_${{ matrix.country }}.json)
