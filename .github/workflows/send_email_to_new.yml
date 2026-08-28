@@ -3,7 +3,7 @@ name: Send E-mails to new consultants
 on:
   push:
     paths:
-      - 'mailing/ConsultantTreeMLM*.xml'
+      # - 'mailing/ConsultantTreeMLM*.xml'
       # - 'mailing/ReportMLM2MC.xml'
   workflow_dispatch:
 
