@@ -1,0 +1,225 @@
+name: Version 2 Email Blast With Delay
+
+on:
+  workflow_dispatch:
+    inputs:
+      country:
+        description: 'Постфикс для страны'
+        required: true
+        type: string
+        default: 'rus'
+      contacts_name:
+        description: 'Список контактов'
+        required: true
+        default: 'mailing/contacts.json'
+      template_name:
+        description: 'Шаблон письма'
+        required: true
+        default: 'mailing/new.txt'
+      delay_seconds:
+        description: 'Задержка (сек)'
+        required: true
+        default: '5'
+
+  # Добавляем возможность вызова из других workflow
+  workflow_call:
+    inputs:
+      country:
+        required: true
+        type: string
+      contacts_name:
+        type: string
+        required: true
+        default: 'mailing/contacts.json'
+      template_name:
+        type: string
+        required: true
+        default: 'mailing/new.txt'
+      delay_seconds:
+        type: string
+        required: true
+        default: '5'
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Скачиваем уникальный артефакт, созданный первой джобой
+      - name: Download region contacts artifact
+        uses: actions/download-artifact@v4
+        continue-on-error: true # Не падать, если артефакта нет
+        with:
+          # Имя совпадает с маской mail-contacts-${{ matrix.country }} из первой джобы
+          name: mail-contacts-${{ inputs.country }}
+          
+      - name: Verify and Select Contacts File
+        id: select_file
+        run: |
+          # 1. Проверяем, пришел ли файл из артефакта
+          if [ -f "contacts_new_with_dates_${{ inputs.country }}.json" ]; then
+            echo "source=artifact" >> $GITHUB_OUTPUT
+            echo "path=contacts_new_with_dates_${{ inputs.country }}.json" >> $GITHUB_OUTPUT
+          # 2. Иначе проверяем, существует ли файл по пути из inputs в репозитории
+          elif [ -f "${{ inputs.contacts_name }}" ]; then
+            echo "source=repository" >> $GITHUB_OUTPUT
+            echo "path=${{ inputs.contacts_name }}" >> $GITHUB_OUTPUT
+          else
+            echo "Error: Contacts file not found!"
+            exit 1
+          fi
+
+          # # Для отладки подменяем файл
+          # echo "source=repository" >> $GITHUB_OUTPUT
+          # echo "path=mailing/contacts.json" >> $GITHUB_OUTPUT
+          
+          
+      - name: Send Email
+        run: |
+          echo "Рассылка по контактам в файле: ${{ steps.select_file.outputs.path }}"
+          # Считаем элементы и выводим в консоль
+          COUNT=$(jq '. | length' ${{ steps.select_file.outputs.path }})
+          echo "Количество элементов в файле: $COUNT"
+          # Вывод результата в лог для проверки
+          cat "${{ steps.select_file.outputs.path }}" 
+          
+      - name: Fix, Validate and Log Deleted Contacts
+        id: prepare_json
+        run: |
+          # 1. Исправляем опечатки и отсекаем хвосты (sed)
+          sed -E -e 's|(@[a-zA-Z0-9.-]+\.com)[^"]*|\1|g' \
+                 -e 's|(@[a-zA-Z0-9.-]+\.ru)[^"]*|\1|g' \
+                 -e 's|(@[a-zA-Z0-9.-]+\.net)[^"]*|\1|g' \
+                 -e 's|@gmail\.commom|@gmail.com|g' \
+                 -e 's|@gmail\.commmooom|@gmail.com|g' \
+                 -e 's|@gmayil\.com|@gmail.com|g' \
+                 -e 's|@gamil\.com|@gmail.com|g' \
+                 -e 's|@mailr\.u|@mail.ru|g' \
+                 -e 's|@andex\.ru|@yandex.ru|g' \
+                 ${{ steps.select_file.outputs.path }} > fixed_contacts.json
+
+          # 2. Логируем удаленные (битые) адреса
+          # Находим разницу между всеми контактами и валидными
+          echo "=== СПИСОК УДАЛЕННЫХ (НЕКОРРЕКТНЫХ) АДРЕСОВ ==="
+          jq -r '.[] | select(.email == null or (.email | test("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$") | not)) | "Удален адрес: \(.email), имя: \(.name)"' fixed_contacts.json || echo "Битых или пустых адресов не найдено."
+          echo "==============================================="
+
+          # 3. Валидация через jq: оставляем только корректные
+          jq -c '[.[] | select(.email != null and (.email | test("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$")))]' fixed_contacts.json > validated_contacts.json
+          
+          # 4. Сохраняем в output для матрицы
+          JSON=$(cat validated_contacts.json)
+          echo "matrix=${JSON}" >> $GITHUB_OUTPUT
+
+          # Итоговая статистика
+          echo "Успешно валидировано: $(jq '. | length' validated_contacts.json) контактов."
+
+      - name: Set Matrix
+        id: set-matrix
+        run: |
+          JSON=$(jq -c '.' validated_contacts.json)
+          echo "matrix=${JSON}" >> $GITHUB_OUTPUT
+
+  send-emails:
+    needs: prepare
+    runs-on: ubuntu-latest
+    env:
+      MAIL_SUBJECT: 'Письмо от Команды Faberlic'
+      # USER: ${{ secrets['MAIL_USERNAME_FMO'] }}
+      # PASSWORD: ${{ secrets['MAIL_PASSWORD_FMO'] }}
+      USER: ${{ secrets['MAIL_USERNAME4'] }}
+      PASSWORD: ${{ secrets['MAIL_PASSWORD4'] }}
+    strategy:
+      max-parallel: 1 
+      matrix:
+        contact: ${{ fromJson(needs.prepare.outputs.matrix) }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Anti-spam delay
+        run: sleep ${{ inputs.delay_seconds }}
+
+      # Шаг для замены {name} на реальное имя из контактов
+      - name: Prepare Template for ${{ matrix.contact.name }}
+        id: prepare_template
+        run: |
+          # Определяем значение бонуса на основе matrix.contact.name
+          case "${{ matrix.contact.promo }}" in
+            "300_RUB")  ORDER="1500 руб." ;;
+            "9_AZN")    ORDER="45 AZN" ;;
+            "1800_AMD")  ORDER="9000 AMD" ;;
+            "10_BYN")    ORDER="50 BYN" ;;
+            "10_GEL")    ORDER="50 GEL" ;;
+            "1500_KZT")  ORDER="7500 KZT" ;;
+            "300_KGS")  ORDER="1500 KGS" ;;
+            "40_TJS")   ORDER="200 TJS" ;;
+            *)           ORDER="1500 руб." ;; # Значение по умолчанию
+          esac
+          case "${{ matrix.contact.promo }}" in
+            "300_RUB")   BONUS="300 руб." ;;
+            "9_AZN")     BONUS="9 AZN" ;;
+            "1800_AMD")  BONUS="1800 AMD" ;;
+            "10_BYN")    BONUS="10 BYN" ;;
+            "10_GEL")    BONUS="10 GEL" ;;
+            "1500_KZT")  BONUS="1500 KZT" ;;
+            "300_KGS")   BONUS="300 KGS" ;;
+            "40_TJS")    BONUS="40 TJS" ;;
+            *)           BONUS="300 руб." ;; # Значение по умолчанию
+          esac
+          # Читаем файл, заменяем {name} на значение из матрицы и сохраняем во временный файл
+          # Используем @ в качестве разделителя в sed на случай, если в имени есть слеши
+          sed \
+              -e "s|%ФИО%|${{ matrix.contact.name }}|g" \
+              -e "s|%ИМЯ%|${{ matrix.contact.firstname }}|g" \
+              -e "s|%НОМЕР_КОНСУЛЬТАНТА%|${{ matrix.contact.cons_number }}|g" \
+              -e "s|%EMAIL%|${{ matrix.contact.email }}|g" \
+              -e "s|%НАСТАВНИК_НОМЕР%|${{ matrix.contact.tutor_id }}|g" \
+              -e "s|%НАСТАВНИК_ФИО%|${{ matrix.contact.tutor_name }}|g" \
+              -e "s|%НАСТАВНИК_ТЕЛЕФОН%|${{ matrix.contact.tutor_phone }}|g" \
+              -e "s|%НАСТАВНИК_EMAIL%|${{ matrix.contact.tutor_email }}|g" \
+              -e "s|%БОНУС%|$BONUS|g" \
+              -e "s|%ЗАКАЗ%|$ORDER|g" \
+              ${{ inputs.template_name }} > prepared_email.txt
+          cat "prepared_email.txt" 
+          
+      - name: Set dynamic subject
+        run: |
+          case "${{ inputs.template_name }}" in
+            "mailing/new.txt")
+              echo "MAIL_SUBJECT=Добро пожаловать в Команду, ${{ matrix.contact.firstname }}!" >> $GITHUB_ENV
+              ;;
+            "mailing/new_rus.txt")
+              echo "MAIL_SUBJECT=Добро пожаловать в Команду, ${{ matrix.contact.firstname }}!" >> $GITHUB_ENV
+              ;;
+            "mailing/new_tgk.txt")
+              echo "MAIL_SUBJECT=Хуш омадед ба Даста, ${{ matrix.contact.firstname }}!" >> $GITHUB_ENV
+              ;;
+            *)
+              # Заголовок по умолчанию
+              echo "MAIL_SUBJECT=Новое сообщение от Команды Faberlic" >> $GITHUB_ENV
+              ;;
+          esac
+      
+#       - name: Send mail to ${{ matrix.contact.email }}
+#         uses: dawidd6/action-send-mail@v3
+#         with:
+#           server_address: smtp.gmail.com
+#           # server_address: smtp.yandex.ru
+#           server_port: 465
+#           # Динамически формируем имя секрета: MAIL_USERNAME + номер
+#           # username: ${{ secrets[format('MAIL_USERNAME{0}', steps.check_day.outputs.result)] }}
+#           # password: ${{ secrets[format('MAIL_PASSWORD{0}', steps.check_day.outputs.result)] }}
+#           username: ${{ env.USER }}
+#           password: ${{ env.PASSWORD }}
+#           subject: ${{ env.MAIL_SUBJECT }}
+#           to: ${{ matrix.contact.email }}
+#           # bcc: ${{ env.USER }}
+#           from: "Команда проекта Faberlic Мастер Образа <${{ env.USER }}>"
+#           # Отправляем уже подготовленный временный файл
+#           body: file://prepared_email.txt
