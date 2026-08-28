@@ -44,6 +44,7 @@ jobs:
   prepare:
     runs-on: ubuntu-latest
     outputs:
+      has_elements: ${{ steps.set-matrix.outputs.has_elements }}
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
       - name: Checkout repository
@@ -121,12 +122,28 @@ jobs:
       - name: Set Matrix
         id: set-matrix
         run: |
-          JSON=$(jq -c '.' validated_contacts.json)
-          echo "matrix=${JSON}" >> $GITHUB_OUTPUT
+          # Считаем количество валидных контактов
+          COUNT=$(jq '. | length' validated_contacts.json)
+          echo "Валидных контактов для матрицы: $COUNT"
+
+          if [ "$COUNT" -eq 0 ]; then
+            echo "Список пуст! Передаем пустую заглушку во избежание падения GitHub Actions."
+            # Передаем пустой массив внутри объекта, чтобы синтаксис fromJson() не упал
+            echo 'matrix={"include":[]}' >> $GITHUB_OUTPUT
+            echo "has_elements=false" >> $GITHUB_OUTPUT
+          else
+            # Если контакты есть, отдаем чистый JSON-массив
+            JSON=$(jq -c '.' validated_contacts.json)
+            echo "matrix=${JSON}" >> $GITHUB_OUTPUT
+            echo "has_elements=true" >> $GITHUB_OUTPUT
+          fi
+
 
   send-emails:
     needs: prepare
     runs-on: ubuntu-latest
+    # Запускаем только если в шаге set-matrix флаг равен 'true'
+    if: needs.prepare.outputs.has_elements == 'true'
     env:
       MAIL_SUBJECT: 'Письмо от Команды Faberlic'
       # USER: ${{ secrets['MAIL_USERNAME_FMO'] }}
