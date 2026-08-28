@@ -65,7 +65,7 @@ jobs:
             template_name: "mailing/new_tgk.txt"
           - country: "Other"
             template_name: "mailing/new.txt"
-    uses: ./.github/workflows/email_blast_with_delay.yml
+    uses: ./.github/workflows/email_blast_with_delay2.yml
     with:
       country: ${{ matrix.country }}
       contacts_name: "contacts_new_with_dates_${{ matrix.country }}.json"
