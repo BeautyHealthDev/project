@@ -1,0 +1,163 @@
+name: Version 2 Send E-mails to new consultants 
+
+on:
+  push:
+    paths:
+      - 'mailing/ConsultantTreeMLM*.xml'
+  workflow_dispatch:
+
+jobs:
+  # 1. Первая джоба: генерация списков контактов
+  build-contacts-list:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - country: "Russia"
+            xsl_file: "contacts_new_rus.xsl"
+          - country: "Tajikistan"
+            xsl_file: "contacts_new_tgk.xsl"
+          - country: "Other"
+            xsl_file: "contacts_new_other.xsl"
+
+    # Экспортируем флаги наличия контактов для 2-й и 3-й джоб
+    outputs:
+      Russia_has_contacts: ${{ steps.check_empty.outputs.Russia_has_contacts }}
+      Tajikistan_has_contacts: ${{ steps.check_empty.outputs.Tajikistan_has_contacts }}
+      Other_has_contacts: ${{ steps.check_empty.outputs.Other_has_contacts }}
+
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 
+
+      # ИСПРАВЛЕНО: Добавлен jq, так как он используется ниже
+      - name: Install xsltproc and jq
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xsltproc jq
+
+      - name: Transform XML to JSON
+        run: |
+          YESTERDAY=$(date -d 'yesterday' +'%Y-%m-%dT00:00:00')
+          echo "Value of YESTERDAY: $YESTERDAY"
+          
+          xsltproc --stringparam fromDate "$YESTERDAY" \
+                   --stringparam toDate "$YESTERDAY" \
+                   mailing/${{ matrix.xsl_file }} mailing/ConsultantTreeMLM.xml > contacts_new_with_dates_${{ matrix.country }}.json
+          
+          echo "Обрабатываем страну: ${{ matrix.country }}"
+          COUNT=$(jq '. | length' contacts_new_with_dates_${{ matrix.country }}.json)
+          echo "Количество элементов в файле: $COUNT"
+          cat contacts_new_with_dates_${{ matrix.country }}.json
+
+      # Проверяем, пустой ли JSON (0 элементов) и отдаем флаг наружу
+      - name: Determine if file is empty
+        id: check_empty
+        run: |
+          COUNT=$(jq '. | length' contacts_new_with_dates_${{ matrix.country }}.json)
+          if [ "$COUNT" -eq 0 ]; then
+            echo "${{ matrix.country }}_has_contacts=false" >> $GITHUB_OUTPUT
+          else
+            echo "${{ matrix.country }}_has_contacts=true" >> $GITHUB_OUTPUT
+          fi
+    
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mail-contacts-${{ matrix.country }}
+          path: contacts_new_with_dates_${{ matrix.country }}.json
+          
+  # 2. Вторая джоба: запуск рассылки
+  send-emails:
+    needs: build-contacts-list
+    strategy:
+      matrix:
+        include:
+          - country: "Russia"
+            template_name: "mailing/new_rus.txt"
+          - country: "Tajikistan"
+            template_name: "mailing/new_tgk.txt"
+          - country: "Other"
+            template_name: "mailing/new.txt"
+    # Запускаем рассылку только если первая джоба нашла контакты для этой страны
+    if: needs.build-contacts-list.outputs[format('{0}_has_contacts', matrix.country)] == 'true'
+    uses: ./.github/workflows/email_blast_with_delay.yml
+    with:
+      country: ${{ matrix.country }}
+      contacts_name: "contacts_new_with_dates_${{ matrix.country }}.json"
+      template_name: "${{ matrix.template_name }}"
+      delay_seconds: '3'
+    secrets: inherit
+    
+  # 3. Третья джоба: отчет в Telegram
+  send-tg-report:
+    needs: [build-contacts-list, send-emails]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        country: ["Russia", "Tajikistan", "Other"]
+    if: !failure() && !cancelled()
+    steps:
+      # Проверяем реальное наличие контактов из outputs первой джобы
+      - name: Check if region has contacts
+        id: check_file
+        run: |
+          HAS_CONTACTS="${{ needs.build-contacts-list.outputs[format('{0}_has_contacts', matrix.country)] }}"
+          if [ "$HAS_CONTACTS" != "true" ]; then
+            echo "No contacts for ${{ matrix.country }}. Skipping."
+            echo "skip=true" >> $GITHUB_OUTPUT
+          else
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
+
+      # Скачиваем правильный региональный артефакт
+      - name: Download result
+        if: steps.check_file.outputs.skip != 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: mail-contacts-${{ matrix.country }}
+
+      # Добавлен jq (нужен для подсчета)
+      - name: Install jq
+        if: steps.check_file.outputs.skip != 'true'
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Generate Summary Report
+        if: steps.check_file.outputs.skip != 'true'
+        id: report
+        run: |
+          FILE="contacts_new_with_dates_${{ matrix.country }}.json"
+          
+          if [ ! -f "$FILE" ]; then
+            echo "Error: File $FILE not found!"
+            exit 1
+          fi
+          
+          TOTAL=$(jq '. | length' "$FILE")
+          echo "total=$TOTAL" >> $GITHUB_OUTPUT
+
+      # Отправка отчета, если контакты были найдены
+      - name: Send Telegram
+        if: steps.check_file.outputs.skip != 'true'
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_CHAT_ID }}
+          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          format: markdown
+          message: |
+            **Отправлено писем новичкам в ${{ matrix.country }}: ${{ steps.report.outputs.total }}**
+
+      # Альтернативный отчет, если отправлять было некому (опционально)
+      - name: Send Telegram (No Contacts)
+        if: steps.check_file.outputs.skip == 'true'
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_CHAT_ID }}
+          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          format: markdown
+          message: |
+            **Для региона ${{ matrix.country }} новые контакты не обнаружены. Рассылка пропущена.**
