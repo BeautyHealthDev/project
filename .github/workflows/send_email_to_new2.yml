@@ -20,12 +20,6 @@ jobs:
           - country: "Other"
             xsl_file: "contacts_new_other.xsl"
 
-    # Экспортируем флаги наличия контактов для 2-й и 3-й джоб
-    outputs:
-      Russia_has_contacts: ${{ steps.check_empty.outputs.Russia_has_contacts }}
-      Tajikistan_has_contacts: ${{ steps.check_empty.outputs.Tajikistan_has_contacts }}
-      Other_has_contacts: ${{ steps.check_empty.outputs.Other_has_contacts }}
-
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true    
     steps:
@@ -53,18 +47,7 @@ jobs:
           COUNT=$(jq '. | length' contacts_new_with_dates_${{ matrix.country }}.json)
           echo "Количество элементов в файле: $COUNT"
           cat contacts_new_with_dates_${{ matrix.country }}.json
-
-      # Проверяем, пустой ли JSON (0 элементов) и отдаем флаг наружу
-      - name: Determine if file is empty
-        id: check_empty
-        run: |
-          COUNT=$(jq '. | length' contacts_new_with_dates_${{ matrix.country }}.json)
-          if [ "$COUNT" -eq 0 ]; then
-            echo "${{ matrix.country }}_has_contacts=false" >> $GITHUB_OUTPUT
-          else
-            echo "${{ matrix.country }}_has_contacts=true" >> $GITHUB_OUTPUT
-          fi
-    
+          
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
@@ -83,8 +66,6 @@ jobs:
             template_name: "mailing/new_tgk.txt"
           - country: "Other"
             template_name: "mailing/new.txt"
-    # Запускаем рассылку только если первая джоба нашла контакты для этой страны
-    if: needs.build-contacts-list.outputs[format('{0}_has_contacts', matrix.country)] == 'true'
     uses: ./.github/workflows/email_blast_with_delay.yml
     with:
       country: ${{ matrix.country }}
@@ -100,34 +81,19 @@ jobs:
     strategy:
       matrix:
         country: ["Russia", "Tajikistan", "Other"]
-    if: !failure() && !cancelled()
+    if: !failure()
     steps:
-      # Проверяем реальное наличие контактов из outputs первой джобы
-      - name: Check if region has contacts
-        id: check_file
-        run: |
-          HAS_CONTACTS="${{ needs.build-contacts-list.outputs[format('{0}_has_contacts', matrix.country)] }}"
-          if [ "$HAS_CONTACTS" != "true" ]; then
-            echo "No contacts for ${{ matrix.country }}. Skipping."
-            echo "skip=true" >> $GITHUB_OUTPUT
-          else
-            echo "skip=false" >> $GITHUB_OUTPUT
-          fi
-
       # Скачиваем правильный региональный артефакт
       - name: Download result
-        if: steps.check_file.outputs.skip != 'true'
         uses: actions/download-artifact@v4
         with:
           name: mail-contacts-${{ matrix.country }}
 
       # Добавлен jq (нужен для подсчета)
       - name: Install jq
-        if: steps.check_file.outputs.skip != 'true'
         run: sudo apt-get update && sudo apt-get install -y jq
 
       - name: Generate Summary Report
-        if: steps.check_file.outputs.skip != 'true'
         id: report
         run: |
           FILE="contacts_new_with_dates_${{ matrix.country }}.json"
@@ -142,7 +108,6 @@ jobs:
 
       # Отправка отчета, если контакты были найдены
       - name: Send Telegram
-        if: steps.check_file.outputs.skip != 'true'
         uses: appleboy/telegram-action@master
         with:
           to: ${{ secrets.TELEGRAM_CHAT_ID }}
@@ -150,14 +115,3 @@ jobs:
           format: markdown
           message: |
             **Отправлено писем новичкам в ${{ matrix.country }}: ${{ steps.report.outputs.total }}**
-
-      # Альтернативный отчет, если отправлять было некому (опционально)
-      - name: Send Telegram (No Contacts)
-        if: steps.check_file.outputs.skip == 'true'
-        uses: appleboy/telegram-action@master
-        with:
-          to: ${{ secrets.TELEGRAM_CHAT_ID }}
-          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          format: markdown
-          message: |
-            **Для региона ${{ matrix.country }} новые контакты не обнаружены. Рассылка пропущена.**
