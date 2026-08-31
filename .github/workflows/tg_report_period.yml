@@ -2,9 +2,9 @@ name: Send TG-report about total group volume
 
 on:
    push:
-    paths:
-       - 'mailing/ConsultantTreeMLM_JULIA.xml'
-  workflow_dispatch:
+      paths:
+         - 'mailing/ConsultantTreeMLM_JULIA.xml'
+   workflow_dispatch:
 
 jobs:
   build-contacts-list:
@@ -43,7 +43,7 @@ jobs:
           path: ${{ steps.set-vars.outputs.file_name }}
           
   send-tg-report:
-    needs: [build-contacts-list, send-emails]
+    needs: [build-contacts-list]
     # Запускаем, если файл был найден, даже если рассылка (email) не требуется
     if: needs.build-contacts-list.outputs.file_name != ''
     runs-on: ubuntu-latest
@@ -63,11 +63,38 @@ jobs:
           
           # 2. Сводная таблица по наставникам
           TABLE=$(jq -r '
-            [ group_by(.tutor_name)[] | {t: .[0].tutor_name, c: length} ] | sort_by(.c) | reverse 
-            | . as $items
-            | ($items[] | "\(.t): \(.c)"), 
-              "ИТОГО: \( [ $items[].c ] | add )"
-          ' $FILE)
+              # 1. Индексация данных
+              (reduce .[] as $item ({}; 
+                if ($item | type) == "object" then
+                  .pv[$item.name] = ($item.pv | tonumber? // 0) |
+                  .my_tutor[$item.name] = $item.tutor_name | # Запоминаем, кто наставник этого человека
+                  if $item.tutor_name then .tree[$item.tutor_name] += [$item.name] else . end
+                else . end
+              )) as $data |
+            
+              # 2. Функция с лимитом глубины
+              def sum_pv($name; $depth):
+                if $depth <= 0 then 0
+                else
+                  ($data.pv[$name] // 0) + 
+                  ([ $data.tree[$name][]? | sum_pv(.; $depth - 1) ] | add // 0)
+                end;
+            
+              # 3. Формируем список ТОР-наставников (тех, у кого самих НЕТ наставника в этом списке)
+              [ $data.tree | keys_unsorted[] | select(. != null and . != "") ]
+            
+              | map(select($data.my_tutor[.] == null or $data.my_tutor[.] == ""))
+              
+              | map({
+                  tutor: .,
+                  total_pv_3_levels: (sum_pv(.; 4) * 100 | round / 100)
+                })
+            
+              | sort_by(.total_pv_3_levels) | reverse
+              | . as $items
+              | ($items[] | "\(.tutor): \t\(.total_pv_3_levels)"), 
+              "ИТОГО: \t\( [ $items[].total_pv_3_levels ] | add )"
+            ' $FILE | column -s $'\t' -t )
 
           # Формируем параметры для текста в Telegram
           # Безопасная запись многострочного вывода
@@ -83,8 +110,8 @@ jobs:
           token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           format: markdown
           message: |
-            **Групповой объем: ${{ steps.report.outputs.total }} **
-            📊 **Распределение по группам:**
+            **Количество консультантов: ${{ steps.report.outputs.total }} **
+            📊 **Распределение баллов по группам:**
             ${{ steps.report.outputs.table }}
   
 
