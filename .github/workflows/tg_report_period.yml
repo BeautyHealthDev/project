@@ -1,0 +1,90 @@
+name: Send TG-report about total group volume
+
+on:
+   push:
+    paths:
+       - 'mailing/ConsultantTreeMLM_JULIA.xml'
+  workflow_dispatch:
+
+jobs:
+  build-contacts-list:
+    runs-on: ubuntu-latest
+    outputs:
+      # Прокидываем output шага на уровень всей джобы
+      file_name: ${{ steps.set-vars.outputs.file_name }}
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true # Активирует Node.js 24 для всех JS-действий в этом задании    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Обязательно: выкачиваем историю, чтобы сравнить коммиты
+          
+      - name: Set Variables
+        id: set-vars
+        run: |
+          echo "file_name=group_volume_for_period.json" >> $GITHUB_OUTPUT
+
+
+      - name: Transform XML to JSON
+        run: |
+          # Запускаем трансформацию
+          xsltproc mailing/contacts_result_ConsultantTreeMLM.xsl mailing/ConsultantTreeMLM_JULIA.xml > ${{ steps.set-vars.outputs.file_name }}
+          # Считаем элементы и выводим в консоль
+          COUNT=$(jq '. | length' ${{ steps.set-vars.outputs.file_name }})
+          echo "Количество элементов в файле: $COUNT"
+          # Вывод результата в лог для проверки
+          # cat ${{ steps.set-vars.outputs.file_name }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mail-contacts
+          path: ${{ steps.set-vars.outputs.file_name }}
+          
+  send-tg-report:
+    needs: [build-contacts-list, send-emails]
+    # Запускаем, если файл был найден, даже если рассылка (email) не требуется
+    if: needs.build-contacts-list.outputs.file_name != ''
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download result
+        uses: actions/download-artifact@v4
+        with:
+          name: mail-contacts
+
+      - name: Generate Summary Report
+        id: report
+        run: |
+          FILE="${{ needs.build-contacts-list.outputs.file_name }}"
+          
+          # 1. Общее количество
+          TOTAL=$(jq '. | length' $FILE)
+          
+          # 2. Сводная таблица по наставникам
+          TABLE=$(jq -r '
+            [ group_by(.tutor_name)[] | {t: .[0].tutor_name, c: length} ] | sort_by(.c) | reverse 
+            | . as $items
+            | ($items[] | "\(.t): \(.c)"), 
+              "ИТОГО: \( [ $items[].c ] | add )"
+          ' $FILE)
+
+          # Формируем параметры для текста в Telegram
+          # Безопасная запись многострочного вывода
+          echo "total=$TOTAL" >> $GITHUB_OUTPUT
+          echo "table<<EOF" >> $GITHUB_OUTPUT
+          echo "${TABLE:-Нет данных по наставникам}" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Send Telegram
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_CHAT_ID }}
+          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          format: markdown
+          message: |
+            **Групповой объем: ${{ steps.report.outputs.total }} **
+            📊 **Распределение по группам:**
+            ${{ steps.report.outputs.table }}
+  
+
