@@ -18,13 +18,16 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Обязательно: выкачиваем историю, чтобы сравнить коммиты
+          fetch-depth: 0
+          
+      - name: Install xsltproc and jq
+        run: |
+          sudo apt-get update   
           
       - name: Set Variables
         id: set-vars
         run: |
           echo "file_name=group_volume_for_period.json" >> $GITHUB_OUTPUT
-
 
       - name: Transform XML to JSON
         run: |
