@@ -100,7 +100,7 @@ jobs:
               | (.tutor | split(" ") | .[0] + " " + .[1]) as $short_tutor 
               | "\($short_tutor): \t\(.total_pv_3_levels)"),
             "ИТОГО: \t\( [ $items[].total_pv_3_levels ] | add )"
-            ' contacts_result.json  | column -s $'\t' -t)
+            ' $FILE | column -s $'\t' -t )
 
           # Формируем параметры для текста в Telegram
           # Безопасная запись многострочного вывода
