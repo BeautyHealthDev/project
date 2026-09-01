@@ -96,9 +96,11 @@ jobs:
             
               | sort_by(.total_pv_3_levels) | reverse
               | . as $items
-              | ($items[] | "\(.tutor): \t\(.total_pv_3_levels)"), 
-              "ИТОГО: \t\( [ $items[].total_pv_3_levels ] | add )"
-            ' $FILE | column -s $'\t' -t )
+               ($items[] 
+              | (.tutor | split(" ") | .[0] + " " + .[1]) as $short_tutor 
+              | "\($short_tutor): \t\(.total_pv_3_levels)"),
+            "ИТОГО: \t\( [ $items[].total_pv_3_levels ] | add )"
+            ' contacts_result.json  | column -s $'\t' -t
 
           # Формируем параметры для текста в Telegram
           # Безопасная запись многострочного вывода
@@ -114,7 +116,7 @@ jobs:
           token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           format: markdown
           message: |
-            **Количество консультантов: ${{ steps.report.outputs.total }} **
+            **Количество консультантов с баллами: ${{ steps.report.outputs.total }} **
             📊 **Распределение баллов по группам:**
             ${{ steps.report.outputs.table }}
   
