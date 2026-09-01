@@ -96,8 +96,7 @@ jobs:
             
               | sort_by(.total_pv_3_levels) | reverse
               | . as $items
-               ($items[] 
-              | (.tutor | split(" ") | .[0] + " " + .[1]) as $short_tutor 
+              | ($items[] | (.tutor | split(" ") | .[0] + " " + .[1]) as $short_tutor 
               | "\($short_tutor): \t\(.total_pv_3_levels)"),
             "ИТОГО: \t\( [ $items[].total_pv_3_levels ] | add )"
             ' $FILE | column -s $'\t' -t )
