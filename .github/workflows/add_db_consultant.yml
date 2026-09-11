@@ -5,6 +5,12 @@ on:
     paths:
       - 'mailing/ConsultantTreeMLM*.xml'
   workflow_dispatch:
+    inputs:
+      target_date:
+        description: 'Выберите дату (формат YYYY-MM-DD). Оставьте пустым для вчерашнего дня.'
+        required: false
+        type: string
+        default: '2026-09-09'
 
 jobs:
   build-contacts-list:
@@ -25,17 +31,35 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y xsltproc
+      
+      - name: Calculate date
+        id: set-date
+        run: |
+          INPUT_DATE="${{ inputs.target_date }}"
+          
+          if [ -z "$INPUT_DATE" ]; then
+            # Вычисляем вчерашнюю дату в формате YYYY-MM-DD
+            BASE_DATE=$(date -d "yesterday" '+%Y-%m-%d')
+          else
+            BASE_DATE="$INPUT_DATE"
+          fi
+          
+          # Добавляем суффикс времени
+          FINAL_DATETIME="${BASE_DATE}T00:00:00"
+          
+          echo "FINAL_DATE=$FINAL_DATETIME" >> $GITHUB_ENV
+          echo "Итоговая дата и время: $FINAL_DATETIME"
           
       - name: Transform XML to JSON
         run: |
           CONTACTS_FILE=${{ steps.save_name.outputs.CONTACTS_FILE }}
           # Получаем дату в нужном формате
-          YESTERDAY=$(date -d 'yesterday' +'%Y-%m-%dT00:00:00')
+          REPORT_DAY=${{ env.FINAL_DATE }}
           # Выводим в консоль для проверки
-          echo "Value of YESTERDAY: $YESTERDAY"
+          echo "Формируем отчет на дату: $REPORT_DAY"
           # Запускаем трансформацию с параметрами
-          xsltproc --stringparam fromDate "$YESTERDAY" \
-                   --stringparam toDate "$YESTERDAY" \
+          xsltproc --stringparam fromDate "$REPORT_DAY" \
+                   --stringparam toDate "$REPORT_DAY" \
                    mailing/contacts_new_db_ConsultantTreeMLM.xsl mailing/ConsultantTreeMLM_JULIA.xml > $CONTACTS_FILE
           # Считаем элементы и выводим в консоль
           COUNT=$(jq '. | length' $CONTACTS_FILE)
@@ -44,7 +68,7 @@ jobs:
           cat $CONTACTS_FILE
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.6.1
         with:
           name: mail-contacts
           path: ${{ steps.save_name.outputs.CONTACTS_FILE }}
