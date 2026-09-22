@@ -1,0 +1,221 @@
+name: History of ReportMLM2MC XML
+
+on:
+  workflow_dispatch:
+    inputs:
+        period_from:
+          description: 'Период от'
+          required: true
+          default: '11/2024'
+          type: choice
+          options:
+            - 11/2024
+            - 12/2024
+            - 01/2025
+            - 01/2026
+            - 02/2026
+            - 03/2026
+            - 04/2026
+            - 05/2026
+            - 06/2026
+            - 07/2026
+            - 08/2026
+            - 09/2026
+            - 10/2026
+            - 11/2026
+            - 12/2026
+            - 13/2026
+            - 14/2026
+        period_to:
+          description: 'Период до'
+          required: true
+          default: '11/2024'
+          type: choice
+          options:
+            - 11/2024
+            - 12/2024
+            - 01/2025
+            - 01/2026
+            - 02/2026
+            - 03/2026
+            - 04/2026
+            - 05/2026
+            - 06/2026
+            - 07/2026
+            - 08/2026
+            - 09/2026
+            - 10/2026
+            - 11/2026
+            - 12/2026
+            - 13/2026
+            - 14/2026
+        nullsum:
+          description: 'Включить неактивных Консультантов'
+          default: 'Да'
+          type: choice
+          options:
+            - Да
+            - Нет
+        ownstructure:
+          description: 'Показывать только свою структуру'
+          default: 'Нет'
+          type: choice
+          options:
+            - Да
+            - Нет
+
+jobs:
+  prepare-matrix:
+    runs-on: ubuntu-latest
+    env:
+      PERIOD_FROM: >-
+        ${{ 
+          inputs.period_from == '11/2024' && '30000000493' || 
+          inputs.period_from == '12/2024' && '30000000494' || 
+          inputs.period_from == '01/2025' && '30000000501' || 
+          inputs.period_from == '01/2026' && '30000000520' || 
+          inputs.period_from == '02/2026' && '30000000521' || 
+          inputs.period_from == '03/2026' && '30000000522' ||
+          inputs.period_from == '04/2026' && '30000000523' ||
+          inputs.period_from == '05/2026' && '30000000524' ||
+          inputs.period_from == '06/2026' && '30000000525' ||
+          inputs.period_from == '07/2026' && '30000000526' ||
+          inputs.period_from == '08/2026' && '30000000527' ||
+          inputs.period_from == '09/2026' && '30000000528' ||
+          inputs.period_from == '10/2026' && '30000000529' ||
+          inputs.period_from == '11/2026' && '30000000530' ||
+          inputs.period_from == '12/2026' && '30000000531' ||
+          inputs.period_from == '13/2026' && '30000000532' ||              
+          inputs.period_from == '14/2026' && '30000000533' ||              
+          '30000000493'
+        }}
+      PERIOD_TO: >-
+        ${{ 
+          inputs.period_to == '11/2024' && '30000000493' || 
+          inputs.period_to == '12/2024' && '30000000494' || 
+          inputs.period_to == '01/2025' && '30000000501' || 
+          inputs.period_to == '01/2026' && '30000000520' || 
+          inputs.period_to == '02/2026' && '30000000521' || 
+          inputs.period_to == '03/2026' && '30000000522' ||
+          inputs.period_to == '04/2026' && '30000000523' ||
+          inputs.period_to == '05/2026' && '30000000524' ||
+          inputs.period_to == '06/2026' && '30000000525' ||
+          inputs.period_to == '07/2026' && '30000000526' ||
+          inputs.period_to == '08/2026' && '30000000527' ||
+          inputs.period_to == '09/2026' && '30000000528' ||
+          inputs.period_to == '10/2026' && '30000000529' ||
+          inputs.period_to == '11/2026' && '30000000530' ||
+          inputs.period_to == '12/2026' && '30000000531' ||
+          inputs.period_to == '13/2026' && '30000000532' ||              
+          inputs.period_to == '14/2026' && '30000000533' ||              
+          '30000000493'
+        }}
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - id: set-matrix
+        run: |
+          base=30000000
+          from_full="${{ env.PERIOD_FROM }}"
+          to_full="${{ env.PERIOD_TO }}"
+
+          # Отрезаем префикс, оставляем 3-значный номер
+          from_num="${from_full#$base}"
+          to_num="${to_full#$base}"
+
+          if (( from_num > to_num )); then
+            tmp=$from_num; from_num=$to_num; to_num=$tmp
+          fi
+
+          # Функция: 3-значный номер → метка периода (XX/YYYY)
+          # 2024: 18 периодов, P1=483 … P18=500
+          # 2025: 19 периодов, P1=501 … P19=519
+          # 2026: P1=520 …
+          code_to_label() {
+            local n=$1
+            if   (( n >= 483 && n <= 500 )); then printf "%02d/2024" $((n - 482))
+            elif (( n >= 501 && n <= 519 )); then printf "%02d/2025" $((n - 500))
+            elif (( n >= 520 ));             then printf "%02d/2026" $((n - 519))
+            else echo "unknown"
+            fi
+          }
+
+          json='{"include":['
+          first=true
+          for ((i=from_num; i<=to_num; i++)); do
+            code="${base}${i}"
+            label=$(code_to_label "$i")
+            file_label="${label//\//_}"
+            if [ "$first" = true ]; then
+              first=false
+            else
+              json+=','
+            fi
+            json+="{\"period_code\":\"$code\",\"period_label\":\"$label\",\"period_file\":\"$file_label\"}"
+          done
+          json+=']}'
+
+          echo "matrix=$json" >> "$GITHUB_OUTPUT"
+
+  download-report:
+    needs: prepare-matrix
+    runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+      CONS: "1001494180387"
+    strategy:
+      max-parallel: 1
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.prepare-matrix.outputs.matrix) }}
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.ACTION_PAT }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Install dependencies
+        run: |
+          npm install playwright
+          npx playwright install chromium --with-deps
+
+      - name: Install Prettier
+        run: npm install prettier @prettier/plugin-xml
+
+      - name: Run Playwright script for ${{ matrix.period_label }}
+        env:
+          USER: ${{ secrets.FABERLIC_USER_JULIA }}
+          PASS: ${{ secrets.FABERLIC_KEY_JULIA }}
+          PERIOD: ${{ matrix.period_code }}
+          NULLSUM: ${{ contains(inputs.nullsum, 'Нет') && '0' || '1' }}
+          OWNSTRUCTURE: ${{ contains(inputs.ownstructure, 'Да') && '1' || '0' }}
+          REPORT: 'ReportMLM2MC'
+          NAME: '_${{ matrix.period_file }}'
+          CONS: ${{ env.CONS }}
+        run: |
+          echo "Запуск для периода: ${{ matrix.period_label }} (${{ matrix.period_code }})"
+          node mailing/script_load_report_xml.js
+
+      - name: Save XML to history_xml folder
+        env:
+          FILE: 'ReportMLM2MC_${{ matrix.period_file }}.xml'
+        run: |
+          mkdir -p history_xml
+          mv "$FILE" history_xml/
+          npx prettier --write "history_xml/$FILE" --plugin=@prettier/plugin-xml
+
+      - name: Sync and Push
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+
+          git add history_xml/
+          git commit -m "Отчет за период ${{ matrix.period_label }}" || exit 0
+          git pull --rebase origin main
+          git push origin main
