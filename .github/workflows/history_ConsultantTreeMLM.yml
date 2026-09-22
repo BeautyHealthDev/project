@@ -1,0 +1,195 @@
+name: History of ConsultantTreeMLM XML
+
+on:
+  workflow_dispatch:
+    inputs:
+        period_from:
+          description: 'Период от'
+          required: true
+          default: '11/2024'
+          type: choice
+          options:
+            - 11/2024
+            - 01/2025
+            - 01/2026
+            - 02/2026
+            - 03/2026
+            - 04/2026
+            - 05/2026
+            - 06/2026
+            - 07/2026
+            - 08/2026
+            - 09/2026
+            - 10/2026
+            - 11/2026
+            - 12/2026
+            - 13/2026
+            - 14/2026
+        period_to:
+          description: 'Период до'
+          required: true
+          default: '11/2024'
+          type: choice
+          options:
+            - 11/2024
+            - 01/2025
+            - 01/2026
+            - 02/2026
+            - 03/2026
+            - 04/2026
+            - 05/2026
+            - 06/2026
+            - 07/2026
+            - 08/2026
+            - 09/2026
+            - 10/2026
+            - 11/2026
+            - 12/2026
+            - 13/2026
+            - 14/2026
+        nullsum:
+          description: 'Включить неактивных Консультантов'
+          default: 'Да'
+          type: choice
+          options:
+            - Да
+            - Нет
+        ownstructure:
+          description: 'Показывать только свою структуру'
+          default: 'Нет'
+          type: choice
+          options:
+            - Да
+            - Нет
+
+jobs:
+  prepare-matrix:
+    runs-on: ubuntu-latest
+    env:
+      PERIOD_FROM: >-
+        ${{ 
+          inputs.period_from == '11/2024' && '30000000493' || 
+          inputs.period_from == '01/2025' && '30000000501' || 
+          inputs.period_from == '01/2026' && '30000000520' || 
+          inputs.period_from == '02/2026' && '30000000521' || 
+          inputs.period_from == '03/2026' && '30000000522' ||
+          inputs.period_from == '04/2026' && '30000000523' ||
+          inputs.period_from == '05/2026' && '30000000524' ||
+          inputs.period_from == '06/2026' && '30000000525' ||
+          inputs.period_from == '07/2026' && '30000000526' ||
+          inputs.period_from == '08/2026' && '30000000527' ||
+          inputs.period_from == '09/2026' && '30000000528' ||
+          inputs.period_from == '10/2026' && '30000000529' ||
+          inputs.period_from == '11/2026' && '30000000530' ||
+          inputs.period_from == '12/2026' && '30000000531' ||
+          inputs.period_from == '13/2026' && '30000000532' ||              
+          inputs.period_from == '14/2026' && '30000000533' ||              
+          '30000000493'
+        }}
+      PERIOD_TO: >-
+        ${{ 
+          inputs.period_to == '11/2024' && '30000000493' || 
+          inputs.period_to == '01/2025' && '30000000501' || 
+          inputs.period_to == '01/2026' && '30000000520' || 
+          inputs.period_to == '02/2026' && '30000000521' || 
+          inputs.period_to == '03/2026' && '30000000522' ||
+          inputs.period_to == '04/2026' && '30000000523' ||
+          inputs.period_to == '05/2026' && '30000000524' ||
+          inputs.period_to == '06/2026' && '30000000525' ||
+          inputs.period_to == '07/2026' && '30000000526' ||
+          inputs.period_to == '08/2026' && '30000000527' ||
+          inputs.period_to == '09/2026' && '30000000528' ||
+          inputs.period_to == '10/2026' && '30000000529' ||
+          inputs.period_to == '11/2026' && '30000000530' ||
+          inputs.period_to == '12/2026' && '30000000531' ||
+          inputs.period_to == '13/2026' && '30000000532' ||              
+          inputs.period_to == '14/2026' && '30000000533' ||              
+          '30000000493'
+        }}
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - id: set-matrix
+        run: |
+          from_num="${{ env.PERIOD_FROM }}"
+          to_num="${{ env.PERIOD_TO }}"
+
+          json='{"include":['
+          first=true
+          for ((i=from_num; i<=to_num; i++)); do
+            code="${i}"
+            if [ "$first" = true ]; then
+              first=false
+            else
+              json+=','
+            fi
+            json+="{\"period_code\":\"$code\"}"
+          done
+          json+=']}'
+
+          echo "matrix=$json" >> "$GITHUB_OUTPUT"
+
+  download-report:
+    needs: prepare-matrix
+    runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+      NAME: "_JULIA"
+      CONS: "1001494180387"
+    strategy:
+      max-parallel: 1
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.prepare-matrix.outputs.matrix) }}
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.ACTION_PAT }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Install dependencies
+        run: |
+          npm install playwright
+          npx playwright install chromium --with-deps
+
+      - name: Install Prettier
+        run: npm install prettier @prettier/plugin-xml
+
+      - name: Run Playwright script for ${{ matrix.period_code }}
+        env:
+          USER: ${{ secrets.FABERLIC_USER_JULIA }}
+          PASS: ${{ secrets.FABERLIC_KEY_JULIA }}
+          PERIOD_FROM: ${{ matrix.period_code }}
+          PERIOD_TO: ${{ matrix.period_code }}
+          NULLSUM: ${{ contains(inputs.nullsum, 'Нет') && '0' || '1' }}
+          OWNSTRUCTURE: ${{ contains(inputs.ownstructure, 'Да') && '1' || '0' }}
+          REPORT: 'ConsultantTreeMLM'
+          NAME: ${{ env.NAME }}
+          CONS: ${{ env.CONS }}
+        run: |
+          echo "Запуск для: $NAME (ID: $CONS), период: ${{ matrix.period_code }}"
+          node mailing/script_load_report_xml.js
+
+      - name: Save XML to history_xml folder
+        env:
+          FILE: 'ConsultantTreeMLM_${{ matrix.period_code }}.xml'
+        run: |
+          mkdir -p history_xml
+          mv "$FILE" history_xml/
+          npx prettier --write "history_xml/$FILE" --plugin=@prettier/plugin-xml
+
+      - name: Sync and Push
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+
+          git add history_xml/
+          git commit -m "Отчет для аккаунта ${{ env.NAME }} за период ${{ matrix.period_code }}" || exit 0
+          git pull --rebase origin main
+          git push origin main
