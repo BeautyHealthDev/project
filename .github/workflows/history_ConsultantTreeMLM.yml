@@ -10,6 +10,7 @@ on:
           type: choice
           options:
             - 11/2024
+            - 12/2024
             - 01/2025
             - 01/2026
             - 02/2026
@@ -32,6 +33,7 @@ on:
           type: choice
           options:
             - 11/2024
+            - 12/2024
             - 01/2025
             - 01/2026
             - 02/2026
@@ -69,6 +71,7 @@ jobs:
       PERIOD_FROM: >-
         ${{ 
           inputs.period_from == '11/2024' && '30000000493' || 
+          inputs.period_from == '12/2024' && '30000000494' || 
           inputs.period_from == '01/2025' && '30000000501' || 
           inputs.period_from == '01/2026' && '30000000520' || 
           inputs.period_from == '02/2026' && '30000000521' || 
@@ -89,6 +92,7 @@ jobs:
       PERIOD_TO: >-
         ${{ 
           inputs.period_to == '11/2024' && '30000000493' || 
+          inputs.period_to == '12/2024' && '30000000494' || 
           inputs.period_to == '01/2025' && '30000000501' || 
           inputs.period_to == '01/2026' && '30000000520' || 
           inputs.period_to == '02/2026' && '30000000521' || 
