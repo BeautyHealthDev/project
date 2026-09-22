@@ -165,8 +165,7 @@ jobs:
         env:
           USER: ${{ secrets.FABERLIC_USER_JULIA }}
           PASS: ${{ secrets.FABERLIC_KEY_JULIA }}
-          PERIOD_FROM: ${{ matrix.period_code }}
-          PERIOD_TO: ${{ matrix.period_code }}
+          PERIOD: ${{ matrix.period_code }}
           NULLSUM: ${{ contains(inputs.nullsum, 'Нет') && '0' || '1' }}
           OWNSTRUCTURE: ${{ contains(inputs.ownstructure, 'Да') && '1' || '0' }}
           REPORT: 'ConsultantTreeMLM'
