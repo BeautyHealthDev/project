@@ -111,19 +111,43 @@ jobs:
     steps:
       - id: set-matrix
         run: |
-          from_num="${{ env.PERIOD_FROM }}"
-          to_num="${{ env.PERIOD_TO }}"
+          base=30000000
+          from_full="${{ env.PERIOD_FROM }}"
+          to_full="${{ env.PERIOD_TO }}"
+
+          # Отрезаем префикс, оставляем 3-значный номер
+          from_num="${from_full#$base}"
+          to_num="${to_full#$base}"
+
+          if (( from_num > to_num )); then
+            tmp=$from_num; from_num=$to_num; to_num=$tmp
+          fi
+
+          # Функция: 3-значный номер → метка периода (XX/YYYY)
+          # 2024: 18 периодов, P1=483 … P18=500
+          # 2025: 19 периодов, P1=501 … P19=519
+          # 2026: P1=520 …
+          code_to_label() {
+            local n=$1
+            if   (( n >= 483 && n <= 500 )); then printf "%02d/2024" $((n - 482))
+            elif (( n >= 501 && n <= 519 )); then printf "%02d/2025" $((n - 500))
+            elif (( n >= 520 ));             then printf "%02d/2026" $((n - 519))
+            else echo "unknown"
+            fi
+          }
 
           json='{"include":['
           first=true
           for ((i=from_num; i<=to_num; i++)); do
-            code="${i}"
+            code="${base}${i}"
+            label=$(code_to_label "$i")
+            file_label="${label//\//_}"
             if [ "$first" = true ]; then
               first=false
             else
               json+=','
             fi
-            json+="{\"period_code\":\"$code\"}"
+            json+="{\"period_code\":\"$code\",\"period_label\":\"$label\",\"period_file\":\"$file_label\"}"
           done
           json+=']}'
 
@@ -134,7 +158,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-      NAME: "_JULIA"
       CONS: "1001494180387"
     strategy:
       max-parallel: 1
@@ -161,7 +184,7 @@ jobs:
       - name: Install Prettier
         run: npm install prettier @prettier/plugin-xml
 
-      - name: Run Playwright script for ${{ matrix.period_code }}
+      - name: Run Playwright script for ${{ matrix.period_label }}
         env:
           USER: ${{ secrets.FABERLIC_USER_JULIA }}
           PASS: ${{ secrets.FABERLIC_KEY_JULIA }}
@@ -169,15 +192,15 @@ jobs:
           NULLSUM: ${{ contains(inputs.nullsum, 'Нет') && '0' || '1' }}
           OWNSTRUCTURE: ${{ contains(inputs.ownstructure, 'Да') && '1' || '0' }}
           REPORT: 'ConsultantTreeMLM'
-          NAME: ${{ env.NAME }}
+          NAME: '_${{ matrix.period_file }}'
           CONS: ${{ env.CONS }}
         run: |
-          echo "Запуск для: $NAME (ID: $CONS), период: ${{ matrix.period_code }}"
+          echo "Запуск для периода: ${{ matrix.period_label }} (${{ matrix.period_code }})"
           node mailing/script_load_report_xml.js
 
       - name: Save XML to history_xml folder
         env:
-          FILE: 'ConsultantTreeMLM_${{ matrix.period_code }}.xml'
+          FILE: 'ConsultantTreeMLM_${{ matrix.period_file }}.xml'
         run: |
           mkdir -p history_xml
           mv "$FILE" history_xml/
@@ -189,6 +212,6 @@ jobs:
           git config --local user.name "github-actions[bot]"
 
           git add history_xml/
-          git commit -m "Отчет для аккаунта ${{ env.NAME }} за период ${{ matrix.period_code }}" || exit 0
+          git commit -m "Отчет за период ${{ matrix.period_label }}" || exit 0
           git pull --rebase origin main
           git push origin main
