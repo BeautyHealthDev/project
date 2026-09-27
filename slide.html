@@ -6,271 +6,243 @@
     <title>Слайдер</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-
-    <!-- Подключение стилей и скрипта Glide -->
+    <!-- Glide.js -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Glide.js/3.0.2/css/glide.core.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Glide.js/3.0.2/css/glide.theme.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Glide.js/3.0.2/glide.js"></script>
+
     <style>
-        /* Убираем все отступы у страницы */
+        :root {
+            --bg-color: #f7f9fc;
+            --card-bg: #ffffff;
+            --primary-text: #1f1f1f;
+            --secondary-text: #757575;
+            --accent-red: #d32f2f;
+            --arrow-bg: #cc0000;
+            --overlay-bg: rgba(0, 0, 0, 0.9);
+        }
+
         body, html {
-          margin: 0;
-          padding: 0;
-          overflow-x: hidden; /* Защита от горизонтальной прокрутки */
+            margin: 0;
+            padding: 0;
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--bg-color);
+            min-height: 100vh;
         }
-        
-        /* Сам блок Glide должен растягиваться на 100% ширины обертки */
+
+        /* Центрируем карточку по вертикали и горизонтали */
+        .centered-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 16px;
+        }
+
+        /* Карточка в стиле Android-приложения */
+        .android-card-slider {
+            background: var(--card-bg);
+            width: 100%;
+            max-width: 400px; /* Ограничение ширины как у экрана телефона */
+            border-radius: 28px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Сам слайдер внутри карточки */
         .glide {
-          width: 100% !important;
+            position: relative;
+            width: 100%;
         }
 
-        /* На всякий случай сбрасываем стили списка, чтобы Glide считал всё ровно */
-        .glide__slides {
-          display: flex !important;
-          margin: 0 !important;
-          padding: 0 !important;
-        }
-
-        /* Изображения внутри должны занимать всю ширину слайда */
-        .glide__slide img {
-            width: 85%;       /* Растягивает по ширине */
-            margin-left: auto;
-            margin-right: auto;
-            display: block;    /* Убирает нижний микро-отступ */
-            object-fit: contain; /* Заполняет пространство без искажений */
-        }
-        
-        /* Сбрасываем стандартные стили обертки трека */
         .glide__track {
             margin: 0 !important;
             padding: 0 !important;
-            background: transparent !important; /* Убирает серый фон, если он есть */
         }
 
-        /* Убираем любые отступы у слайда */
+        .glide__slides {
+            display: flex !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+
         .glide__slide {
+            min-width: 100% !important; /* Один слайд = 100% ширины карточки */
             padding: 0 !important;
             margin: 0 !important;
         }
-        
-        .glide__arrow {
-          width: 50px;
-          height: 50px;
-          border-radius: 50%;
-          background-color: #cc0000; /* Красный, под стиль стрелок */
-          color: white;
-          border: none;
-          
-          /* Центрирование иконки */
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          
-          cursor: pointer;
-          transition: all 0.3s ease;
-          padding: 0; /* Убираем лишнее, чтобы круг не стал овалом */
+
+        /* Картинки: заполняют слайд, не растягиваются непропорционально */
+        .glide__slide img {
+            width: 100%;
+            height: 100%;
+            display: block;
+            object-fit: cover; /* Обрезает края, но сохраняет пропорции */
         }
 
-        /* Размер самой иконки */
+        /* Стрелки */
+        .glide__arrows {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            transform: translateY(-50%);
+            display: flex;
+            justify-content: space-between;
+            padding: 0 12px;
+            pointer-events: none;
+        }
+
+        .glide__arrow {
+            pointer-events: auto;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background-color: var(--arrow-bg);
+            color: white;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .glide__arrow:hover {
+            background-color: #a00000;
+        }
+
         .glide__arrow i {
-          font-size: 20px;
+            font-size: 18px;
         }
 
-        .glide {
-            position: relative;
-            padding-top: 55px;
-        }
-
-        /* Общие стили для обоих блоков */
+        /* Блоки поверх слайдера */
         .dynamic-title-top, .dynamic-info-bottom {
-          position: absolute;
-          left: 10px;
-          right: 10px;
-          z-index: 10;
-          padding: 12px 15px;
-          
-          /* Белый, но очень прозрачный */
-          background-color: rgba(255, 255, 255, 0.4);
-          
-          /* Магия для Safari: сильное размытие + повышение насыщенности */
-          -webkit-backdrop-filter: blur(20px) saturate(180%);
-          backdrop-filter: blur(20px) saturate(180%);
-          
-          /* Убираем серый оттенок принудительным слоем */
-          transform: translateZ(0);
-          
-          font-family: 'Roboto', sans-serif;
-          color: #000;
-          text-align: center;
-          border-radius: 12px;
-          border: 1px solid rgba(255, 255, 255, 0.5);
-          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            position: absolute;
+            left: 12px;
+            right: 12px;
+            z-index: 10;
+            padding: 12px 16px;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 14px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            text-align: center;
         }
 
-        /* Ссылка внутри светлого блока комментария */
-        .dynamic-info-bottom a {
-          color: white;
-          text-decoration: underline;
-          font-weight: bold;
-          pointer-events: auto;
-          transition: color 0.2s;
-        }
-
-        .dynamic-info-bottom a:hover {
-          color: #000000;
-          text-decoration: none;
-        }
-
-        /* Верхний блок (заголовок) */
         .dynamic-title-top {
-          top: 10px;
-          font-size: 18px;
-          font-weight: bold;
-          color: #d32f2f;
+            top: 12px;
+            background: rgba(255, 255, 255, 0.7);
+            color: var(--accent-red);
+            font-weight: bold;
+            font-size: 16px;
         }
 
-        /* Нижний блок (комментарий) */
         .dynamic-info-bottom {
-          bottom: 10px;
-          font-size: 16px;
-          pointer-events: none;
-          background-color: #ff4d4d; /* Красный, под стиль стрелок */
-          color: white;
+            bottom: 72px; /* Чтобы не перекрывать кнопку */
+            background: #ff4d4d;
+            color: white;
+            font-size: 15px;
+            pointer-events: none;
         }
 
-        /* Анимации из прошлого примера */
-        @keyframes slideDown {
-          from { opacity: 0; transform: translateY(-15px); }
-          to { opacity: 1; transform: translateY(0); }
+        .dynamic-info-bottom a {
+            color: white;
+            text-decoration: underline;
+            font-weight: bold;
         }
 
-        @keyframes slideUp {
-          from { opacity: 0; transform: translateY(15px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Стандартное состояние стрелок */
-        .glide__arrow {
-          transition: opacity 0.3s ease, visibility 0.3s ease;
-          opacity: 1;
-          visibility: visible;
-        }
-
-        /* Кнопка "Дальше" в самом низу */
+        /* Кнопка «Дальше» */
         .dynamic-next-button {
-          position: absolute;
-          bottom: 20px; /* Самый низ */
-          left: 50%;
-          transform: translateX(-50%);
-          z-index: 15;
-          
-          padding: 10px 25px;
-          background-color: #cc0000; /* Красный, под стиль стрелок ff4d4d*/
-          color: white;
-          border: none;
-          border-radius: 25px;
-          font-size: 14px;
-          font-weight: bold;
-          text-transform: uppercase;
-          cursor: pointer;
-          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-          transition: background 0.3s, transform 0.2s;
-          pointer-events: auto; /* Чтобы кнопка нажималась */
-          
-          white-space: nowrap;    /* Запрещает перенос строки */
-          overflow: hidden;       /* Скрывает текст, который не помещается */
-          text-overflow: ellipsis; /* Добавляет "..." в конце */
+            position: absolute;
+            bottom: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 11;
+            padding: 10px 24px;
+            background-color: var(--arrow-bg);
+            color: white;
+            border: none;
+            border-radius: 24px;
+            font-weight: bold;
+            text-transform: uppercase;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
 
         .dynamic-next-button:hover {
-          background-color: #cc0000;
-          transform: translateX(-50%) scale(1.05);
+            transform: translateX(-50%) scale(1.05);
         }
 
-        .dynamic-next-button:active {
-          transform: translateX(-50%) scale(0.95);
-        }
-
-        /* Поднимаем блок комментария чуть выше, чтобы он не перекрывал кнопку */
-        .dynamic-info-bottom {
-          bottom: 70px; /* Увеличили отступ снизу, чтобы кнопка влезла под него */
-        }
-
-        /* Общий класс для скрытия (используется и для стрелок, и для кнопки) */
-        .arrow-hidden {
-          opacity: 0 !important;
-          visibility: hidden !important;
-          pointer-events: none !important;
-        }
-
-        /* Слой затемнения */
+        /* Полноэкранный просмотр */
         .fullscreen-overlay {
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          background-color: rgba(0, 0, 0, 0.9);
-          backdrop-filter: blur(10px); /* Размытие в стиле Material You */
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          z-index: 2000;
-          opacity: 0;
-          visibility: hidden;
-          transition: opacity 0.3s ease, visibility 0.3s;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--overlay-bg);
+            backdrop-filter: blur(8px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
         }
 
-        /* Когда активно */
         .fullscreen-overlay.visible {
-          opacity: 1;
-          visibility: visible;
+            opacity: 1;
+            visibility: visible;
         }
 
-        /* Изображение с анимацией увеличения */
         .fullscreen-overlay img {
-          max-width: 95%;
-          max-height: 95%;
-          border-radius: 24px; /* Крупные углы Android 2026 */
-          transform: scale(0.8);
-          transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); /* Пружинистая анимация */
+            max-width: 90%;
+            max-height: 85vh;
+            border-radius: 16px;
+            transform: scale(0.8);
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
         .fullscreen-overlay.visible img {
-          transform: scale(1);
+            transform: scale(1);
         }
 
-        /* Кнопка закрытия */
         .close-btn {
-          position: absolute;
-          top: 30px;
-          right: 30px;
-          color: white;
-          font-size: 40px;
-          cursor: pointer;
-          z-index: 2100;
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: white;
+            font-size: 36px;
+            cursor: pointer;
+            z-index: 2100;
         }
-
     </style>
 </head>
 <body>
-    <div class="glide_parent">
-        <div class="glide">
-            <div class="glide__track" data-glide-el="track">
-                <!-- Сюда скрипт вставит слайды -->
-                <ul class="glide__slides" id="glide-render-target"></ul>
-            </div>
-            
-            <div class="glide__arrows" data-glide-el="controls">
-                <button class="glide__arrow glide__arrow--left" data-glide-dir="<">
-                    <i class="fa-solid fa-chevron-left"></i>
-                </button>
-                <button class="glide__arrow glide__arrow--right" data-glide-dir=">">
-                    <i class="fa-solid fa-chevron-right"></i>
-                </button>
-            </div>
-        </div>
-    </div>
+
+	<div class="centered-wrapper">
+		<div class="android-card-slider">
+					<div class="glide">
+				<div class="glide__track" data-glide-el="track">
+					<!-- Сюда скрипт вставит слайды -->
+					<ul class="glide__slides" id="glide-render-target"></ul>
+				</div>
+				
+				<div class="glide__arrows" data-glide-el="controls">
+					<button class="glide__arrow glide__arrow--left" data-glide-dir="<">
+						<i class="fa-solid fa-chevron-left"></i>
+					</button>
+					<button class="glide__arrow glide__arrow--right" data-glide-dir=">">
+						<i class="fa-solid fa-chevron-right"></i>
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
     <!-- Окно полноэкранного просмотра -->
     <div id="fullscreen-overlay" class="fullscreen-overlay" onclick="closeFullscreen()">
         <span class="close-btn">&times;</span>
