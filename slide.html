@@ -12,11 +12,43 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Glide.js/3.0.2/css/glide.theme.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Glide.js/3.0.2/glide.js"></script>
     <style>
-        /* Убираем все отступы у страницы */
+		:root {
+            --bg-color: #f7f9fc;
+            --card-bg: #ffffff;
+            --primary-text: #1f1f1f;
+            --secondary-text: #757575;
+            --accent-red: #d32f2f;
+            --arrow-bg: #cc0000;
+            --overlay-bg: rgba(0, 0, 0, 0.9);
+        }
+
         body, html {
-          margin: 0;
-          padding: 0;
-          overflow-x: hidden; /* Защита от горизонтальной прокрутки */
+            margin: 0;
+            padding: 0;
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--bg-color);
+            min-height: 100vh;
+        }
+
+        /* Центрируем карточку по вертикали и горизонтали */
+        .centered-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 16px;
+        }
+		
+
+        /* Карточка в стиле Android-приложения */
+        .glide_parent {
+            background: var(--card-bg);
+            width: 100%;
+            max-width: 400px; /* Ограничение ширины как у экрана телефона */
+            border-radius: 28px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            overflow: hidden;
+            position: relative;
         }
         
         /* Сам блок Glide должен растягиваться на 100% ширины обертки */
@@ -254,6 +286,7 @@
     </style>
 </head>
 <body>
+<div class="centered-wrapper">
     <div class="glide_parent">
         <div class="glide">
             <div class="glide__track" data-glide-el="track">
@@ -276,6 +309,7 @@
         <span class="close-btn">&times;</span>
         <img id="fullscreen-img" src="" alt="Full Screen">
     </div>
+</div>
 
     <script>
     function openFullscreen() {
@@ -445,10 +479,10 @@
          "comment": "Нажмите на иконку с \"человечком\" в правом верхнем углу."},
        { "image": "orders_step_2.png", "title": "Пункт \"Мои заказы\"",
          "comment": "В появившемся меню выберите пункт \"Мои заказы\"."},
-       { "image": "orders_step_3.png", "title": "Переход к списку заказов",
-         "comment": "Прокрутите содержимое следующей страницы <b>вниз почти до самого конца</b>, чтобы увидеть таблицу со списком заказов.\n Если нажать на  ссылку с номером заказа, Вы перейдёте в карточку этого заказа."},
+       { "image": "orders_step_3.png", "title": "Активные заказы",
+         "comment": "В разделе \"Активные заказы\" отображается список Ваших текущих заказов.\n Если нажать на ссылку с номером заказа, Вы перейдёте в карточку этого заказа."},
        { "image": "orders_step_4.png", "title": "Место получения заказа",
-         "comment": "Также таблицу с заказами можно <b>прокрутить вправо</b>, чтобы увидеть место получения заказа. \n Если нажать на  ссылку с адресом, Вы перейдёте в карточку с дополнительной информацией о месте получения."}
+         "comment": "Также можно нажать на ссылку с адресом, в этом случае Вы перейдёте в карточку с дополнительной информацией о месте получения заказа."}
      ]
    },
    {
