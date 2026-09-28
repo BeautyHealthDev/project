@@ -6,7 +6,7 @@ on:
         period_from:
           description: 'Период от'
           required: true
-          default: '11/2024'
+          default: '13/2026'
           type: choice
           options:
             - 11/2024
@@ -26,10 +26,14 @@ on:
             - 12/2026
             - 13/2026
             - 14/2026
+            - 15/2026
+            - 16/2026
+            - 17/2026
+            - 18/2026
         period_to:
           description: 'Период до'
           required: true
-          default: '11/2024'
+          default: '13/2026'
           type: choice
           options:
             - 11/2024
@@ -49,6 +53,10 @@ on:
             - 12/2026
             - 13/2026
             - 14/2026
+            - 15/2026
+            - 16/2026
+            - 17/2026
+            - 18/2026
         nullsum:
           description: 'Включить неактивных Консультантов'
           default: 'Да'
@@ -87,7 +95,11 @@ jobs:
           inputs.period_from == '12/2026' && '30000000531' ||
           inputs.period_from == '13/2026' && '30000000532' ||              
           inputs.period_from == '14/2026' && '30000000533' ||              
-          '30000000493'
+          inputs.period_from == '15/2026' && '30000000534' ||              
+          inputs.period_from == '16/2026' && '30000000535' ||              
+          inputs.period_from == '17/2026' && '30000000536' ||              
+          inputs.period_from == '18/2026' && '30000000537' ||              
+          '30000000532'
         }}
       PERIOD_TO: >-
         ${{ 
@@ -108,7 +120,11 @@ jobs:
           inputs.period_to == '12/2026' && '30000000531' ||
           inputs.period_to == '13/2026' && '30000000532' ||              
           inputs.period_to == '14/2026' && '30000000533' ||              
-          '30000000493'
+          inputs.period_to == '15/2026' && '30000000534' ||              
+          inputs.period_to == '16/2026' && '30000000535' ||              
+          inputs.period_to == '17/2026' && '30000000536' ||              
+          inputs.period_to == '18/2026' && '30000000537' ||              
+          '30000000532'
         }}
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
@@ -136,6 +152,7 @@ jobs:
             if   (( n >= 483 && n <= 500 )); then printf "%02d/2024" $((n - 482))
             elif (( n >= 501 && n <= 519 )); then printf "%02d/2025" $((n - 500))
             elif (( n >= 520 ));             then printf "%02d/2026" $((n - 519))
+            elif (( n >= 538 ));             then printf "%02d/2027" $((n - 537))
             else echo "unknown"
             fi
           }
