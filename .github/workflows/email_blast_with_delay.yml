@@ -172,6 +172,7 @@ jobs:
               -e "s|%ИМЯ%|${{ matrix.contact.firstname }}|g" \
               -e "s|%НОМЕР_КОНСУЛЬТАНТА%|${{ matrix.contact.cons_number }}|g" \
               -e "s|%EMAIL%|${{ matrix.contact.email }}|g" \
+              -e "s|%НАСТАВНИК_НОМЕР%|${{ matrix.contact.tutor_id }}|g" \
               -e "s|%НАСТАВНИК_ФИО%|${{ matrix.contact.tutor_name }}|g" \
               -e "s|%НАСТАВНИК_ТЕЛЕФОН%|${{ matrix.contact.tutor_phone }}|g" \
               -e "s|%НАСТАВНИК_EMAIL%|${{ matrix.contact.tutor_email }}|g" \
@@ -184,6 +185,9 @@ jobs:
         run: |
           case "${{ inputs.template_name }}" in
             "mailing/new.txt")
+              echo "MAIL_SUBJECT=Добро пожаловать в Команду, ${{ matrix.contact.firstname }}!" >> $GITHUB_ENV
+              ;;
+            "mailing/new_rus.txt")
               echo "MAIL_SUBJECT=Добро пожаловать в Команду, ${{ matrix.contact.firstname }}!" >> $GITHUB_ENV
               ;;
             "mailing/green.txt")
