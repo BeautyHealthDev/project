@@ -155,7 +155,7 @@ jobs:
             local n=$1
             if   (( n >= 483 && n <= 500 )); then printf "%02d/2024" $((n - 482))
             elif (( n >= 501 && n <= 519 )); then printf "%02d/2025" $((n - 500))
-            elif (( n >= 520 ));             then printf "%02d/2026" $((n - 519))
+            elif (( n >= 520 && n <= 537 )); then printf "%02d/2026" $((n - 519))
             elif (( n >= 538 ));             then printf "%02d/2027" $((n - 537))
             else echo "unknown"
             fi
