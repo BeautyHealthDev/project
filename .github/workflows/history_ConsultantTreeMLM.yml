@@ -165,6 +165,7 @@ jobs:
           first=true
           for ((i=from_num; i<=to_num; i++)); do
             code="${base}${i}"
+            label=$(code_to_label "$i")
             # label имеет вид "15/2024" → разбиваем и меняем местами
             period="${label%%/*}"
             year="${label##*/}"
