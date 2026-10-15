@@ -154691,7 +154691,7 @@
         DREGDATE="2026-09-30T00:00:00"
         textbox15="НК"
         textbox19="+998948296444"
-        SCONSEMAIL="saidqosimqodirov5@gmail.comm"
+        SCONSEMAIL="saidqosimqodirov5@gmail.com"
         FSELFSCORE="0"
         FSELFGROUPSCORE="0"
         FGROUPSCORE="0"
@@ -437732,7 +437732,7 @@
         FGROUPSCORE="23.65"
         NMONTHSWITHOUTLO="0"
         FDEBT="0"
-        FDEBTNEXT="0"
+        FDEBTNEXT="23.65"
       /><Detail
         textbox12="5057"
         NLEVEL="2"
