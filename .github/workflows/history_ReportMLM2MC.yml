@@ -6,7 +6,7 @@ on:
         period_from:
           description: 'Период от'
           required: true
-          default: '13/2026'
+          default: '14/2026'
           type: choice
           options:
             - 11/2024
@@ -33,7 +33,7 @@ on:
         period_to:
           description: 'Период до'
           required: true
-          default: '13/2026'
+          default: '14/2026'
           type: choice
           options:
             - 11/2024
@@ -99,7 +99,7 @@ jobs:
           inputs.period_from == '16/2026' && '30000000535' ||              
           inputs.period_from == '17/2026' && '30000000536' ||              
           inputs.period_from == '18/2026' && '30000000537' ||              
-          '30000000532'
+          '30000000533'
         }}
       PERIOD_TO: >-
         ${{ 
@@ -124,7 +124,7 @@ jobs:
           inputs.period_to == '16/2026' && '30000000535' ||              
           inputs.period_to == '17/2026' && '30000000536' ||              
           inputs.period_to == '18/2026' && '30000000537' ||              
-          '30000000532'
+          '30000000533'
         }}
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
