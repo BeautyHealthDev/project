@@ -19,7 +19,7 @@
     <xsl:for-each select="r:Report/r:table1/r:Detail_Collection/r:Detail[
         translate(@DREGDATE, '-:T', '') &gt;= translate($fromDate, '-:T', '') and 
         translate(@DREGDATE, '-:T', '') &lt;= translate($toDate, '-:T', '') and
-        not((@textbox98 = 'Россия') or (@textbox98 = 'Таджикистан')) and 
+        not((@textbox98 = 'Россия') or (@textbox98 = 'Таджикистан')  or ((@textbox98 = 'Кыргызстан') and (@NNUMBERPARENT = '744610130'))) and 
         @SBSENDMAIL = 'Да'
     ]">
         <xsl:variable name="parentId" select="string(@NNUMBERPARENT)" />

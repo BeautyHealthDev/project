@@ -18,7 +18,8 @@
 [
     <xsl:for-each select="r:Report/r:table1/r:Detail_Collection/r:Detail[
         translate(@DREGDATE, '-:T', '') &gt;= translate($fromDate, '-:T', '') and 
-        translate(@DREGDATE, '-:T', '') &lt;= translate($toDate, '-:T', '')
+        translate(@DREGDATE, '-:T', '') &lt;= translate($toDate, '-:T', '') and
+        not((@textbox98 = 'Кыргызстан') and (@NNUMBERPARENT = '744610130'))
     ]">
         <xsl:variable name="parentId" select="string(@NNUMBERPARENT)" />
         <xsl:variable name="tutor" select="key('detail-by-textbox', $parentId)" />
