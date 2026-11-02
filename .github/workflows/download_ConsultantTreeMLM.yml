@@ -8,7 +8,7 @@ on:
         period:
           description: 'Период'
           required: true
-          default: '15/2026'
+          default: '16/2026'
           type: choice
           options:
             - 01/2026
@@ -114,7 +114,7 @@ jobs:
               inputs.period == '16/2026' && '30000000535' ||              
               inputs.period == '17/2026' && '30000000536' ||              
               inputs.period == '18/2026' && '30000000537' ||              
-              '30000000534'
+              '30000000535'
             }}
           NULLSUM: ${{ contains(inputs.nullsum, 'Нет') && '0' || '1' }}
           OWNSTRUCTURE: ${{ contains(inputs.ownstructure, 'Да') && '1' || '0' }}
