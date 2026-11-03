@@ -11,10 +11,9 @@
     <xsl:param name="toDate" />
 
     <!-- 1. Определяем ключ (индекс) ОДИН РАЗ вне шаблонов -->
-    <!-- Индексируем все Detail по значению их атрибута textbox18 -->
-    <xsl:key name="detail-by-textbox" match="r:Detail" use="string(@textbox18)" 
- or ((@textbox98 = 'Кыргызстан') and (@NNUMBERPARENT = '744610130'))
-/>
+    <!-- Индексируем все Detail по значению их атрибута textbox18 
+ or ((@textbox98 = 'Кыргызстан') and (@NNUMBERPARENT = '744610130'))-->
+    <xsl:key name="detail-by-textbox" match="r:Detail" use="string(@textbox18)"/>
     
     <xsl:template match="/">
 [
