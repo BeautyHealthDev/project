@@ -239,7 +239,7 @@ jobs:
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
 
-          git add history_xml/
+          git add .
           git commit -m "Отчет за период ${{ matrix.period_label }}" || exit 0
           git pull --rebase origin main
           git push origin main
