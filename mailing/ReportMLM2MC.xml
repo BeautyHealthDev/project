@@ -49534,7 +49534,7 @@
         FBAAGROUPSCORE="2.64"
         NMONTHSWITHOUTLO="0"
         FDEBT="0"
-        FDEBTNEXT="0.57"
+        FDEBTNEXT="0"
       /><Detail
         textbox12="8787"
         NLEVEL="2"
@@ -68620,7 +68620,7 @@
         FGROUPSCORE="0"
         NMONTHSWITHOUTLO="1"
         FDEBT="1.94"
-        FDEBTNEXT="1.94"
+        FDEBTNEXT="0"
       /><Detail
         textbox12="8787"
         NLEVEL="2"
@@ -216772,7 +216772,7 @@
         FGROUPSCORE="41.55"
         NMONTHSWITHOUTLO="0"
         FDEBT="0"
-        FDEBTNEXT="4.95"
+        FDEBTNEXT="0"
       /><Detail
         textbox12="8787"
         NLEVEL="1"
@@ -233531,7 +233531,7 @@
         textbox12="8787"
         NLEVEL="2"
         textbox23="744986375"
-        SCONS="Гнездилова Евгения Витальевна"
+        SCONS="Шубенина Евгения Витальевна"
         textbox14="744610130"
         SLEADER="Белоусов Николай Борисович"
         NDIRECTORPARENT="744610130"
@@ -286897,7 +286897,7 @@
         FGROUPSCORE="0"
         NMONTHSWITHOUTLO="1"
         FDEBT="0"
-        FDEBTNEXT="0"
+        FDEBTNEXT="38.85"
       /><Detail
         textbox12="8787"
         NLEVEL="2"
